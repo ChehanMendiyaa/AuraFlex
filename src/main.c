@@ -127,7 +127,9 @@ int main(void)
                 case 5: printf("View Members\n"); break;
             }
         } else {
+
             switch (choice) {
+                
                 case 1: printf("View Assigned Members\n"); break;
                 case 2: printf("Manage Workout Plans\n"); break;
                 case 3: printf("Manage Nutrition Plans\n"); break;

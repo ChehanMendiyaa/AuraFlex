@@ -37,20 +37,18 @@ int login(User *loggedUser)
 
         if (file == NULL) {
             printf("\nError: Cannot open %s\n", USERS_FILE);
-            printf("Run the program from the project root folder.\n");
             return 0;
         }
 
         User current;
         int found = 0;
 
-        while (fscanf(file,
-                      "%9[^|]|%29[^|]|%49[^|]|%19[^|]|%14[^\r\n]",
-                      current.userId,
-                      current.userName,
-                      current.password,
-                      current.role,
-                      current.status) == 5) {
+        while (fscanf(file, "%9s %29s %49s %19s %14s",
+              current.userId,
+              current.userName,
+              current.password,
+              current.role,
+              current.status) == 5) {
 
             if (strcmp(username, current.userName) == 0 &&
                 strcmp(password, current.password) == 0 &&
