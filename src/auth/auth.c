@@ -16,9 +16,10 @@ int login(User *loggedUser)
     }
 
     for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+
         printf("\n========================================\n");
-        printf("       GYM MANAGEMENT SYSTEM\n");
-        printf("                 LOGIN\n");
+        printf("          GYM MANAGEMENT SYSTEM\n");
+        printf("                  LOGIN\n");
         printf("========================================\n");
 
         printf("Username: ");
@@ -44,11 +45,11 @@ int login(User *loggedUser)
         int found = 0;
 
         while (fscanf(file, "%9s %29s %49s %19s %14s",
-              current.userId,
-              current.userName,
-              current.password,
-              current.role,
-              current.status) == 5) {
+                      current.userId,
+                      current.userName,
+                      current.password,
+                      current.role,
+                      current.status) == 5) {
 
             if (strcmp(username, current.userName) == 0 &&
                 strcmp(password, current.password) == 0 &&
@@ -58,21 +59,16 @@ int login(User *loggedUser)
                 found = 1;
                 break;
             }
-
-            /* Skip the remainder of the current line. */
-            int ch;
-            while ((ch = fgetc(file)) != '\n' && ch != EOF) {
-                /* Discard remaining characters. */
-            }
         }
 
         fclose(file);
 
         if (found) {
-            printf("\nLogin successful. Welcome, %s!\n",
-                   loggedUser->userName);
+            printf("\nLogin successful!\n");
+            printf("Welcome, %s!\n", loggedUser->userName);
             printf("User ID: %s\n", loggedUser->userId);
             printf("Role: %s\n", loggedUser->role);
+
             return 1;
         }
 
@@ -85,5 +81,6 @@ int login(User *loggedUser)
     }
 
     printf("\nMaximum login attempts reached.\n");
+
     return 0;
 }
