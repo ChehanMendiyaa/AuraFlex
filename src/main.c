@@ -1,28 +1,26 @@
+
 #include <stdio.h>
 #include <string.h>
 #include "auth.h"
 
-void clearInputBuffer(void)
+static void clearInputBuffer(void)
 {
     int ch;
 
     while ((ch = getchar()) != '\n' && ch != EOF) {
-        /* Clear remaining input */
+        /* Discard remaining input */
     }
 }
 
-void pauseScreen(void)
+static void pauseScreen(void)
 {
     printf("\nPress Enter to return to the dashboard...");
 
+    /* Wait for the user to press Enter */
     int ch;
-
-    /* Clear any remaining characters from previous input */
     while ((ch = getchar()) != '\n' && ch != EOF) {
-        /* Discard characters */
+        /* Discard input */
     }
-
-    getchar();
 }
 
 int main(void)
@@ -31,8 +29,7 @@ int main(void)
     int choice;
     int logoutChoice;
 
-    printf("\n");
-    printf("============================================\n");
+    printf("\n============================================\n");
     printf("       GYM & FITNESS MANAGEMENT SYSTEM\n");
     printf("============================================\n");
 
@@ -42,30 +39,26 @@ int main(void)
         return 1;
     }
 
-    /* Set the Logout option for the current role */
+    /* Determine the logout menu number */
     if (strcmp(loggedUser.role, "ADMIN") == 0) {
         logoutChoice = 7;
-    }
-    else if (strcmp(loggedUser.role, "RECEPTIONIST") == 0 ||
-             strcmp(loggedUser.role, "TRAINER") == 0) {
+    } else if (strcmp(loggedUser.role, "RECEPTIONIST") == 0 ||
+               strcmp(loggedUser.role, "TRAINER") == 0) {
         logoutChoice = 6;
-    }
-    else {
+    } else {
         printf("\nError: Invalid role configuration.\n");
         return 1;
     }
 
-    /* Dashboard loop */
+    /* Keep displaying the dashboard until logout */
     while (1) {
-        printf("\n");
-        printf("============================================\n");
+        printf("\n============================================\n");
         printf("                 DASHBOARD\n");
         printf("============================================\n");
         printf("Welcome, %s!\n", loggedUser.userName);
         printf("Role: %s\n", loggedUser.role);
         printf("--------------------------------------------\n");
 
-        /* Admin dashboard */
         if (strcmp(loggedUser.role, "ADMIN") == 0) {
             printf("1. Member Management\n");
             printf("2. Membership Plans\n");
@@ -74,20 +67,14 @@ int main(void)
             printf("5. Attendance Management\n");
             printf("6. Reports\n");
             printf("7. Logout\n");
-        }
-
-        /* Receptionist dashboard */
-        else if (strcmp(loggedUser.role, "RECEPTIONIST") == 0) {
+        } else if (strcmp(loggedUser.role, "RECEPTIONIST") == 0) {
             printf("1. Register Member\n");
             printf("2. Manage Memberships\n");
             printf("3. Record Payment\n");
             printf("4. Record Attendance\n");
             printf("5. View Members\n");
             printf("6. Logout\n");
-        }
-
-        /* Trainer dashboard */
-        else if (strcmp(loggedUser.role, "TRAINER") == 0) {
+        } else {
             printf("1. View Assigned Members\n");
             printf("2. Manage Workout Plans\n");
             printf("3. Manage Nutrition Plans\n");
@@ -99,7 +86,6 @@ int main(void)
         printf("--------------------------------------------\n");
         printf("Enter your choice: ");
 
-        /* Validate menu input */
         if (scanf("%d", &choice) != 1) {
             printf("\nInvalid input. Please enter a number.\n");
             clearInputBuffer();
@@ -110,80 +96,43 @@ int main(void)
 
         /* Logout */
         if (choice == logoutChoice) {
-            printf("\n============================================\n");
-            printf("Logged out successfully. Goodbye, %s!\n",
+            printf("\nLogged out successfully. Goodbye, %s!\n",
                    loggedUser.userName);
-            printf("============================================\n");
             break;
         }
 
-        /* Validate menu selection */
+        /* Check the selected menu option */
         if (choice < 1 || choice >= logoutChoice) {
             printf("\nInvalid menu choice. Please try again.\n");
             continue;
         }
 
-        /* Feature placeholders */
         printf("\n--------------------------------------------\n");
 
         if (strcmp(loggedUser.role, "ADMIN") == 0) {
             switch (choice) {
-                case 1:
-                    printf("Member Management\n");
-                    break;
-                case 2:
-                    printf("Membership Plans\n");
-                    break;
-                case 3:
-                    printf("Trainer Management\n");
-                    break;
-                case 4:
-                    printf("Payment Management\n");
-                    break;
-                case 5:
-                    printf("Attendance Management\n");
-                    break;
-                case 6:
-                    printf("Reports\n");
-                    break;
+                case 1: printf("Member Management\n"); break;
+                case 2: printf("Membership Plans\n"); break;
+                case 3: printf("Trainer Management\n"); break;
+                case 4: printf("Payment Management\n"); break;
+                case 5: printf("Attendance Management\n"); break;
+                case 6: printf("Reports\n"); break;
             }
-        }
-        else if (strcmp(loggedUser.role, "RECEPTIONIST") == 0) {
+        } else if (strcmp(loggedUser.role, "RECEPTIONIST") == 0) {
             switch (choice) {
-                case 1:
-                    printf("Register Member\n");
-                    break;
-                case 2:
-                    printf("Manage Memberships\n");
-                    break;
-                case 3:
-                    printf("Record Payment\n");
-                    break;
-                case 4:
-                    printf("Record Attendance\n");
-                    break;
-                case 5:
-                    printf("View Members\n");
-                    break;
+                case 1: printf("Register Member\n"); break;
+                case 2: printf("Manage Memberships\n"); break;
+                case 3: printf("Record Payment\n"); break;
+                case 4: printf("Record Attendance\n"); break;
+                case 5: printf("View Members\n"); break;
             }
-        }
-        else if (strcmp(loggedUser.role, "TRAINER") == 0) {
+        } else {
             switch (choice) {
-                case 1:
-                    printf("View Assigned Members\n");
-                    break;
-                case 2:
-                    printf("Manage Workout Plans\n");
-                    break;
-                case 3:
-                    printf("Manage Nutrition Plans\n");
-                    break;
-                case 4:
-                    printf("View Fitness Progress\n");
-                    break;
-                case 5:
-                    printf("Manage Goals\n");
-                    break;
+                case 1: printf("View Assigned Members\n"); break;
+                case 2: printf("Manage Workout Plans\n"); break;
+                case 3: printf("Manage Nutrition Plans\n"); break;
+                case 4: printf("View Fitness Progress\n"); break;
+                case 5: printf("Manage Goals\n"); break;
             }
         }
 
