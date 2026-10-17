@@ -14,4 +14,20 @@ typedef struct {
     char sessionTime[6];       
 } Assignment;
 
-#endif // Trainer_h
+void trainerMenu(void);
+
+void addTrainer(void);
+void viewTrainers(void);
+void searchTrainer(void);
+void updateTrainer(void);
+void deleteTrainer(void);
+
+void assignTrainerToMember(void);
+void unassignMember(void);
+void viewTrainerMembers(void);
+void viewTrainerSchedule(void);
+
+int trainerExists(int trainerId);
+int getMemberTrainer(int memberId);
+
+#endif
