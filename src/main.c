@@ -1,7 +1,7 @@
-
 #include <stdio.h>
 #include <string.h>
 #include "auth.h"
+#include "member.h"
 
 static void clearInputBuffer(void)
 {
@@ -111,30 +111,62 @@ int main(void)
 
         if (strcmp(loggedUser.role, "ADMIN") == 0) {
             switch (choice) {
-                case 1: printf("Member Management\n"); break;
-                case 2: printf("Membership Plans\n"); break;
-                case 3: printf("Trainer Management\n"); break;
-                case 4: printf("Payment Management\n"); break;
-                case 5: printf("Attendance Management\n"); break;
-                case 6: printf("Reports\n"); break;
+                case 1:
+                memberMenu();
+                break;
+                case 2:
+                 printf("Membership Plans\n"); 
+                 break;
+                case 3:
+                 printf("Trainer Management\n"); 
+                 break;
+                case 4:
+                 printf("Payment Management\n"); 
+                 break;
+                case 5:
+                 printf("Attendance Management\n"); 
+                 break;
+                case 6:
+                 printf("Reports\n"); 
+                 break;
             }
         } else if (strcmp(loggedUser.role, "RECEPTIONIST") == 0) {
             switch (choice) {
-                case 1: printf("Register Member\n"); break;
-                case 2: printf("Manage Memberships\n"); break;
-                case 3: printf("Record Payment\n"); break;
-                case 4: printf("Record Attendance\n"); break;
-                case 5: printf("View Members\n"); break;
+                case 1:
+                    memberMenu();
+                    break;
+                case 2:
+                 printf("Manage Memberships\n"); 
+                 break;
+                case 3:
+                 printf("Record Payment\n"); 
+                 break;
+                case 4:
+                 printf("Record Attendance\n"); 
+                 break;
+                case 5:
+                 printf("View Members\n"); 
+                 break;
             }
         } else {
 
             switch (choice) {
                 
-                case 1: printf("View Assigned Members\n"); break;
-                case 2: printf("Manage Workout Plans\n"); break;
-                case 3: printf("Manage Nutrition Plans\n"); break;
-                case 4: printf("View Fitness Progress\n"); break;
-                case 5: printf("Manage Goals\n"); break;
+                case 1:
+                 printf("View Assigned Members\n"); 
+                 break;
+                case 2:
+                 printf("Manage Workout Plans\n"); 
+                 break;
+                case 3:
+                 printf("Manage Nutrition Plans\n"); 
+                 break;
+                case 4:
+                 printf("View Fitness Progress\n"); 
+                 break;
+                case 5:
+                 printf("Manage Goals\n"); 
+                 break;
             }
         }
 
