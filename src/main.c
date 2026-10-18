@@ -3,6 +3,8 @@
 #include "auth.h"
 #include "member.h"
 #include "membership.h"
+#include "trainer.h"
+#include "reports.h"
 
 static void clearInputBuffer(void)
 {
@@ -128,7 +130,7 @@ int main(void)
                  printf("Attendance Management\n"); 
                  break;
                 case 6:
-                 printf("Reports\n"); 
+                 reportsMenu(); 
                  break;
             }
         } else if (strcmp(loggedUser.role, "RECEPTIONIST") == 0) {
