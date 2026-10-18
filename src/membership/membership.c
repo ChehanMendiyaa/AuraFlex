@@ -2,6 +2,7 @@
 #include <string.h>
 #include <time.h>
 #include "membership.h"
+#include "system.h"
 
 #define MEMBER_FILE "data/members.txt"
 #define MEMBERSHIP_FILE "data/memberships.txt"
@@ -90,12 +91,14 @@ static int writeMembership(Membership *m, FILE *file)
 static int savePayment(Payment *p)
 {
     if (checkPaymentID(p->paymentId)) {
+        clearScreen2s();
         printf("This Payment ID is already used.\n");
         return 0;
     }
 
     FILE *file = fopen(PAYMENT_FILE, "a");
     if (file == NULL) {
+        clearScreen2s();
         printf("Cannot open payment file.\n");
         return 0;
     }
@@ -103,7 +106,6 @@ static int savePayment(Payment *p)
     int saved = fprintf(file, "%s %s %.2f %s %s\n",
                         p->paymentId, p->memberId, p->amount,
                         p->paymentDate, p->method) >= 0;
-
     if (fclose(file) != 0) saved = 0;
     return saved;
 }
@@ -118,6 +120,7 @@ static int takePayment(Membership *m)
     if (scanf("%49s", name) != 1) return 0;
 
     if (!checkMember(m->memberId, name)) {
+        clearScreen2s();
         printf("Member ID and name do not match.\n");
         return 0;
     }
@@ -136,6 +139,7 @@ static int takePayment(Membership *m)
 
     if (savePayment(&p)) {
         printf("Payment saved successfully.\n");
+        clearScreen2s();
         return 1;
     }
 
@@ -148,6 +152,7 @@ void assignMembership(void)
     Membership m;
     char name[50], answer;
 
+    clearScreen();
     printf("\n===== ASSIGN MEMBERSHIP =====\n");
 
     printf("Membership ID: ");
@@ -165,6 +170,7 @@ void assignMembership(void)
     if (scanf("%49s", name) != 1) return;
 
     if (!checkMember(m.memberId, name)) {
+        clearScreen2s();
         printf("Member ID and name do not match.\n");
         return;
     }
@@ -193,6 +199,7 @@ void assignMembership(void)
 
     FILE *file = fopen(MEMBERSHIP_FILE, "a");
     if (file == NULL) {
+        clearScreen();
         printf("Cannot open membership file.\n");
         return;
     }
@@ -226,9 +233,11 @@ void viewMemberships(void)
 
     if (file == NULL) {
         printf("No memberships found.\n");
+        clearScreen2s();
         return;
     }
 
+    clearScreen();
     printf("\n===== ALL MEMBERSHIPS =====\n");
 
     while (readMembership(&m, file)) {
@@ -257,6 +266,7 @@ void renewMembership(void)
     FILE *file = fopen(MEMBERSHIP_FILE, "r");
     if (file == NULL) {
         printf("No memberships found.\n");
+        clearScreen2s();
         return;
     }
 
@@ -264,6 +274,7 @@ void renewMembership(void)
     if (temp == NULL) {
         fclose(file);
         printf("Cannot create temporary file.\n");
+        clearScreen2s();
         return;
     }
 
@@ -312,12 +323,14 @@ void renewMembership(void)
 
     if (remove(MEMBERSHIP_FILE) != 0) {
         printf("Could not update membership file.\n");
+        clearScreen2s();
         remove(TEMP_FILE);
         return;
     }
 
     if (rename(TEMP_FILE, MEMBERSHIP_FILE) != 0) {
         printf("Could not save renewed membership.\n");
+        clearScreen2s();
         return;
     }
 
@@ -335,6 +348,7 @@ void viewExpiredMemberships(void)
 
     if (current == NULL) {
         printf("Cannot get today's date.\n");
+        clearScreen2s();
         return;
     }
 
