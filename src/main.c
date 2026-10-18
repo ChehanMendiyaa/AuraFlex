@@ -2,6 +2,10 @@
 #include <string.h>
 #include "auth.h"
 #include "member.h"
+#include "membership.h"
+#include "trainer.h"
+#include "reports.h"
+#include "system.h"
 
 static void clearInputBuffer(void)
 {
@@ -51,6 +55,7 @@ int main(void)
     }
 
     /* Keep displaying the dashboard until logout */
+    clearScreen();
     while (1) {
         printf("\n============================================\n");
         printf("                 DASHBOARD\n");
@@ -93,7 +98,7 @@ int main(void)
         }
 
         clearInputBuffer();
-
+        clearScreen();
         /* Logout */
         if (choice == logoutChoice) {
             printf("\nLogged out successfully. Goodbye, %s!\n",
@@ -112,10 +117,12 @@ int main(void)
         if (strcmp(loggedUser.role, "ADMIN") == 0) {
             switch (choice) {
                 case 1:
+                clearScreen();
                 memberMenu();
                 break;
                 case 2:
-                 printf("Membership Plans\n"); 
+                clearScreen();
+                membershipMenu(); 
                  break;
                 case 3:
                  printf("Trainer Management\n"); 
@@ -127,16 +134,18 @@ int main(void)
                  printf("Attendance Management\n"); 
                  break;
                 case 6:
-                 printf("Reports\n"); 
+                 reportsMenu(); 
                  break;
             }
         } else if (strcmp(loggedUser.role, "RECEPTIONIST") == 0) {
             switch (choice) {
                 case 1:
+                    clearScreen();
                     memberMenu();
                     break;
                 case 2:
-                 printf("Manage Memberships\n"); 
+                 clearScreen();
+                 membershipMenu(); 
                  break;
                 case 3:
                  printf("Record Payment\n"); 
