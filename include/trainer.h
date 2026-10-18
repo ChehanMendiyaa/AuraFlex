@@ -1,10 +1,10 @@
-#ifndef Trainer_h
-#define Trainer_h
+#ifndef TRAINER_H
+#define TRAINER_H
 
-#include "models.h"     
+#include "models.h"  
 
-#define Trainers_FILE "data/trainers.txt"
-#define Assingment_FILE "data/trainer_assignments.txt"
+#define TRAINER_FILE     "data/trainers.txt"
+#define ASSIGNMENT_FILE  "data/trainer_assignments.txt"
 #define MAX_TRAINER_MEMBERS 20  
 
 typedef struct {
@@ -14,20 +14,23 @@ typedef struct {
     char sessionTime[6];       
 } Assignment;
 
+/* Menu */
 void trainerMenu(void);
 
+/* Trainer records */
 void addTrainer(void);
 void viewTrainers(void);
 void searchTrainer(void);
 void updateTrainer(void);
-void deleteTrainer(void);
+void deleteTrainer(void);         
 
 void assignTrainerToMember(void);
 void unassignMember(void);
 void viewTrainerMembers(void);
 void viewTrainerSchedule(void);
 
-int trainerExists(int trainerId);
-int getMemberTrainer(int memberId);
+int  trainerExists(int trainerId);
+int  getMemberTrainer(int memberId); 
+int  countTrainerMembers(int trainerId);
 
 #endif

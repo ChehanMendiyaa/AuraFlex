@@ -17,11 +17,15 @@ typedef struct{
 }member;
 
 typedef struct{
-    int id[5];
+    int id;
     char name[100];
-    char phone[10];
+    char phone[15];
     char email[100];
     char specialization[30];
+    int experienceYears;
+    char workDays[30];
+    char shiftStart[6];
+    char shiftEnd[6];
 }trainer;
 
 
