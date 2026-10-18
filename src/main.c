@@ -2,6 +2,7 @@
 #include <string.h>
 #include "auth.h"
 #include "member.h"
+#include "membership.h"
 
 static void clearInputBuffer(void)
 {
@@ -115,7 +116,7 @@ int main(void)
                 memberMenu();
                 break;
                 case 2:
-                 printf("Membership Plans\n"); 
+                membershipMenu(); 
                  break;
                 case 3:
                  printf("Trainer Management\n"); 
@@ -136,7 +137,7 @@ int main(void)
                     memberMenu();
                     break;
                 case 2:
-                 printf("Manage Memberships\n"); 
+                 membershipMenu(); 
                  break;
                 case 3:
                  printf("Record Payment\n"); 
