@@ -1,7 +1,7 @@
-
 #include <stdio.h>
 #include <string.h>
 #include "auth.h"
+#include <system.h>
 
 #define USERS_FILE "data/users.txt"
 #define MAX_ATTEMPTS 3
@@ -14,6 +14,7 @@ int login(User *loggedUser)
     if (loggedUser == NULL) {
         return 0;
     }
+    clearScreen();
 
     for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
 
