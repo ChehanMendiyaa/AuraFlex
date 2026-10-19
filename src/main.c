@@ -6,6 +6,7 @@
 #include "trainer.h"
 #include "reports.h"
 #include "system.h"
+#include "attendance.h"
 
 static void clearInputBuffer(void)
 {
@@ -131,7 +132,8 @@ int main(void)
                  printf("Payment Management\n"); 
                  break;
                 case 5:
-                 printf("Attendance Management\n"); 
+                 clearScreen();
+                 attendanceMenu(); 
                  break;
                 case 6:
                  reportsMenu(); 
@@ -151,7 +153,8 @@ int main(void)
                  printf("Record Payment\n"); 
                  break;
                 case 4:
-                 printf("Record Attendance\n"); 
+                    clearScreen();
+                 attendanceMenu(); 
                  break;
                 case 5:
                  printf("View Members\n"); 
