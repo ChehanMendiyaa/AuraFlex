@@ -1,8 +1,8 @@
-
 #include <stdio.h>
 #include <string.h>
 #include "member.h"
 #include "system.h"
+#include "ui.h"
 
 #define MEMBERS_FILE "data/members.txt"
 #define TEMP_FILE "data/temp.txt"
@@ -349,17 +349,18 @@ void memberMenu(void)
 
     do {
         clearScreen();
-
-        printf("\n============================\n");
-        printf("      MEMBER MANAGEMENT\n");
-        printf("============================\n");
-        printf("1. Register Member\n");
-        printf("2. View All Members\n");
-        printf("3. Search Member\n");
-        printf("4. Update Member\n");
-        printf("5. Freeze Member\n");
-        printf("6. Unfreeze Member\n");
-        printf("7. Return to Dashboard\n");
+        printLogo();
+        printf("╠════════════════════════════════════════════════════════════════════════════════╣\n");
+        printf("║                                                                                ║\n");
+        printf("║   [1]  Register Member                                                         ║\n");
+        printf("║   [2]  View All Members                                                        ║\n");  
+        printf("║   [3]  Search Member                                                           ║\n");
+        printf("║   [4]  Update Member                                                           ║\n");
+        printf("║   [5]  Freeze Member                                                           ║\n");
+        printf("║   [6]  Unfreeze Member                                                         ║\n");
+        printf("║   [7]  Return to Dashboard                                                     ║\n");
+        printf("║                                                                                ║\n");
+        printf("╚════════════════════════════════════════════════════════════════════════════════╝\n");
         printf("Enter choice: ");
 
         if (scanf("%d", &choice) != 1) {
