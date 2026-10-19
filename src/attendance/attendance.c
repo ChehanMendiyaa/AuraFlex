@@ -1,0 +1,1 @@
+idumin mara kariyek
