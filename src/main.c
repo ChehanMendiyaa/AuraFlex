@@ -8,6 +8,7 @@
 #include "system.h"
 #include "ui.h"
 #include "attendance.h"
+#include "payment.h"
 
 static void clearInputBuffer(void)
 {
@@ -136,10 +137,10 @@ int main(void)
                  printf("Trainer Management\n"); 
                  break;
                 case 4:
-                 printf("Payment Management\n"); 
+                 paymentMenu(); 
                  break;
                 case 5:
-                 printf("Attendance Management\n"); 
+                 attendanceMenu(); 
                  break;
                 case 6:
                  reportsMenu(); 
