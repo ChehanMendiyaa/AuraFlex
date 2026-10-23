@@ -3,6 +3,7 @@
 #include <time.h>
 #include "membership.h"
 #include "system.h"
+#include "ui.h"
 
 #define MEMBER_FILE "data/members.txt"
 #define MEMBERSHIP_FILE "data/memberships.txt"
@@ -499,15 +500,18 @@ void membershipMenu(void)
     int choice;
 
     do {
-        printf("\n===== MEMBERSHIP & PAYMENTS =====\n");
-        printf("1. Assign Membership\n");
-        printf("2. View Memberships\n");
-        printf("3. Record Payment\n");
-        printf("4. View Payments\n");
-        printf("5. Renew Membership\n");
-        printf("6. View Expired Memberships\n");
-        printf("7. Cancel Membership\n");
-        printf("8. Return to Dashboard\n");
+         clearScreen();
+        printLogoWithoutl();
+
+        printf("║   [1]  Assign Membership                                                       ║\n");
+        printf("║   [2]  View Memberships                                                        ║\n");
+        printf("║   [3]  Record Payment                                                          ║\n");
+        printf("║   [4]  View Payments                                                           ║\n");
+        printf("║   [5]  Renew Membership                                                        ║\n");
+        printf("║   [6]  View Expired Memberships                                                ║\n");
+        printf("║   [7]  Cancel Membership                                                       ║\n");
+        printf("║   [8]  Return to Dashboard                                                     ║\n");
+        printf("╚════════════════════════════════════════════════════════════════════════════════╝\n");
         printf("Enter choice: ");
 
         if (scanf("%d", &choice) != 1) {

@@ -2,5 +2,6 @@
 #define UI_H
 
 void printLogo(void);
+void printLogoWithoutl(void);
 
 #endif

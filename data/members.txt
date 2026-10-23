@@ -1,9 +1,7 @@
-001 Chehan 0740181216 chehanmendiya@gmail.com FROZEN
-002 Cheha 0740201326 cmendiya@gmail.com ACTIVE
 M001 Kasun 0771234567 kasun@gmail.com ACTIVE
 M002 Nimal 0712345678 nimal@gmail.com ACTIVE
 M003 Amaya 0751234567 amaya@gmail.com ACTIVE
-M004 Saman 0761234567 saman@gmail.com ACTIVE
+M004 naknnfafa fawnfkaflma awffawfa ACTIVE
 M005 Kavi 0721234567 kavi@gmail.com FROZEN
-ID123 test 071221111 TEST ACTIVE
-w w w w ACTIVE
+M013 Kiwith 0751234567 kiwith@example.com ACTIVE
+M014 Pasindu 0771234567 pasindu@example.com FROZEN
