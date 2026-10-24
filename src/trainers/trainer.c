@@ -1,708 +1,714 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "trainer.h"
+#include "ui.h"
 
-#define MAX_TRAINERS     100
-#define MAX_ASSIGNMENTS  500
-#define MEMBERS_FILE     "data/members.txt"
+#define TRAINERS_FILE "data/trainers.txt"
+#define TEMP_FILE "data/trainers_temp.txt"
 
-trainer    trList[MAX_TRAINERS];          
-Assignment trAssign[MAX_ASSIGNMENTS];
-char       trDays[7][4] = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
+typedef struct {
+    char trainerId[10];
+    char fullName[50];
+    char phone[20];
+    char specialization[40];
+    char status[15];
+} Trainer;
 
-// helper prototypes
-int  trReadInt(char prompt[], int low, int high);
-void trReadWord(char prompt[], char out[], int size);
-int  trConfirm(char question[]);
-int  trIsPhone(char s[]);
-int  trIsEmail(char s[]);
-int  trIsTime(char s[]);
-int  trDayIndex(char s[]);
-int  trContains(char text[], char key[]);
-int  trLoadTrainers(void);
-int  trSaveTrainers(int n);
-int  trLoadAssignments(void);
-int  trSaveAssignments(int n);
-int  trMemberExists(int memberId);
-int  trFindTrainer(int n, int id);
-int  trCountFor(int an, int trainerId);
-int  trPickTrainer(int *count);
-void trPrintTrainer(trainer *t, int memberCount);
-
-// input and valid help
-
-int trReadInt(char prompt[], int low, int high)
+/* Read one trainer record */
+static int readTrainer(FILE *file, Trainer *trainer)
 {
-    int value, result, c;
-
-    while (1) {
-        printf("%s", prompt);
-        result = scanf("%d", &value);
-        if (result == EOF)
-            exit(0);                      
-        while ((c = getchar()) != '\n' && c != EOF) { }   
-        if (result == 1 && value >= low && value <= high)
-            return value;
-        printf("  Enter a number from %d to %d.\n", low, high);
-    }
+    return fscanf(file, "%9s %49s %19s %39s %14s",
+                  trainer->trainerId,
+                  trainer->fullName,
+                  trainer->phone,
+                  trainer->specialization,
+                  trainer->status) == 5;
 }
 
-/* Reads one word (no spaces) that fits into out[size] */
-void trReadWord(char prompt[], char out[], int size)
+/* Check whether a trainer ID already exists */
+static int trainerIdExists(const char trainerId[])
 {
-    char tmp[100];
-    int c, len;
+    FILE *file = fopen(TRAINERS_FILE, "r");
+    Trainer trainer;
 
-    while (1) {
-        printf("%s", prompt);
-        if (scanf("%99s", tmp) == EOF)
-            exit(0);
-        while ((c = getchar()) != '\n' && c != EOF) { }
-        len = strlen(tmp);
-        if (len < size) {
-            strcpy(out, tmp);
-            return;
-        }
-        printf("  Too long (maximum %d characters).\n", size - 1);
-    }
-}
-
-int trConfirm(char question[])
-{
-    char tmp[100];
-    trReadWord(question, tmp, 100);
-    return (tmp[0] == 'y' || tmp[0] == 'Y');
-}
-
-// phone number should be 10
-int trIsPhone(char s[])
-{
-    int i;
-    if (strlen(s) != 10)
+    if (file == NULL)
         return 0;
-    for (i = 0; i < 10; i++)
-        if (s[i] < '0' || s[i] > '9')
-            return 0;
-    return 1;
-}
 
-// Email need to have @ and then . 
-int trIsEmail(char s[])
-{
-    int i, at = -1, dot = -1, len = strlen(s);
-
-    for (i = 0; i < len; i++) {
-        if (s[i] == '@' && at == -1)
-            at = i;
-        if (s[i] == '.' && at != -1)
-            dot = i;
-    }
-    return (at > 0 && dot > at + 1 && dot < len - 1);
-}
-
-// time hh:mm (24hrs format)
-int trIsTime(char s[])
-{
-    int hour, minute;
-
-    if (strlen(s) != 5 || s[2] != ':')
-        return 0;
-    if (s[0] < '0' || s[0] > '9' || s[1] < '0' || s[1] > '9' ||
-        s[3] < '0' || s[3] > '9' || s[4] < '0' || s[4] > '9')
-        return 0;
-    hour   = (s[0] - '0') * 10 + (s[1] - '0');
-    minute = (s[3] - '0') * 10 + (s[4] - '0');
-    return (hour < 24 && minute < 60);
-}
-
-// Returns -1 if it is not a day 
-int trDayIndex(char s[])
-{
-    int i;
-    for (i = 0; i < 7; i++)
-        if (strcmp(s, trDays[i]) == 0)
-            return i;
-    return -1;
-}
-
-int trContains(char text[], char key[])
-{
-    int i, j, tl = strlen(text), kl = strlen(key);
-
-    for (i = 0; i + kl <= tl; i++) {
-        j = 0;
-        while (j < kl && text[i + j] == key[j])
-            j++;
-        if (j == kl)
+    while (readTrainer(file, &trainer)) {
+        if (strcmp(trainer.trainerId, trainerId) == 0) {
+            fclose(file);
             return 1;
+        }
     }
+
+    fclose(file);
     return 0;
 }
 
-// file handling
-
-// Reads all trainers from the file into trList and returns how many
-
-int trLoadTrainers(void)
+/* Find a trainer and return the matching record */
+static int findTrainer(const char trainerId[], Trainer *found)
 {
-    FILE *fp;
-    int n = 0;
+    FILE *file = fopen(TRAINERS_FILE, "r");
+    Trainer trainer;
 
-    fp = fopen(TRAINER_FILE, "r");
-    if (fp == NULL)
-        return 0;                         // no file = no trainers
-
-    while (n < MAX_TRAINERS &&
-           fscanf(fp, "%d %99s %14s %99s %29s %d", &trList[n].id, trList[n].name,
-                  trList[n].phone, trList[n].email, trList[n].specialization,
-                  &trList[n].experienceYears) == 6) {
-        n++;
+    if (file == NULL) {
+        printf("Error: Cannot open trainers.txt.\n");
+        return -1;
     }
-    fclose(fp);
-    return n;
-}
 
-int trSaveTrainers(int n)
-{
-    FILE *fp;
-    int i;
-
-    fp = fopen(TRAINER_FILE, "w");
-    if (fp == NULL) {
-        printf("  Error: cannot write %s\n", TRAINER_FILE);
-        return 0;
-    }
-    for (i = 0; i < n; i++)
-        fprintf(fp, "%d %s %s %s %s %d\n", trList[i].id, trList[i].name,
-                trList[i].phone, trList[i].email, trList[i].specialization,
-                trList[i].experienceYears);
-    fclose(fp);
-    return 1;
-}
-
-int trLoadAssignments(void)
-{
-    FILE *fp;
-    int n = 0;
-
-    fp = fopen(ASSIGNMENT_FILE, "r");
-    if (fp == NULL)
-        return 0;
-
-    while (n < MAX_ASSIGNMENTS &&
-           fscanf(fp, "%d %d %9s %5s", &trAssign[n].memberId, &trAssign[n].trainerId,
-                  trAssign[n].sessionDay, trAssign[n].sessionTime) == 4) {
-        n++;
-    }
-    fclose(fp);
-    return n;
-}
-
-int trSaveAssignments(int n)
-{
-    FILE *fp;
-    int i;
-
-    fp = fopen(ASSIGNMENT_FILE, "w");
-    if (fp == NULL) {
-        printf("  Error: cannot write %s\n", ASSIGNMENT_FILE);
-        return 0;
-    }
-    for (i = 0; i < n; i++)
-        fprintf(fp, "%d %d %s %s\n", trAssign[i].memberId, trAssign[i].trainerId,
-                trAssign[i].sessionDay, trAssign[i].sessionTime);
-    fclose(fp);
-    return 1;
-}
-
-/* members.txt own by Member module so each line must start with the
-   member id. We read number and skip the other things of the line */
-
-int trMemberExists(int memberId)
-{
-    FILE *fp;
-    int id, c, found = 0;
-
-    fp = fopen(MEMBERS_FILE, "r");
-    if (fp == NULL)
-        return 0;
-
-    while (!found && fscanf(fp, "%d", &id) == 1) {
-        if (id == memberId) {
-            found = 1;
-        } else {
-            c = getc(fp);
-            while (c != '\n' && c != EOF)
-                c = getc(fp);
+    while (readTrainer(file, &trainer)) {
+        if (strcmp(trainer.trainerId, trainerId) == 0) {
+            *found = trainer;
+            fclose(file);
+            return 1;
         }
     }
-    fclose(fp);
-    return found;
+
+    fclose(file);
+    return 0;
 }
 
-// searching helpers
-
-
-int trFindTrainer(int n, int id)
+/* Register a new trainer */
+void registerTrainer(void)
 {
-    int i;
-    for (i = 0; i < n; i++)
-        if (trList[i].id == id)
-            return i;
-    return -1;
+    FILE *file;
+    Trainer trainer;
+
+    printf("\n--- Register New Trainer ---\n");
+
+    printf("Enter Trainer ID: ");
+    if (scanf("%9s", trainer.trainerId) != 1)
+        return;
+
+    if (trainerIdExists(trainer.trainerId)) {
+        printf("Trainer ID already exists.\n");
+        return;
+    }
+
+    printf("Enter trainer name (one word): ");
+    if (scanf("%49s", trainer.fullName) != 1)
+        return;
+
+    printf("Enter phone number: ");
+    if (scanf("%19s", trainer.phone) != 1)
+        return;
+
+    printf("Enter specialization (one word): ");
+    if (scanf("%39s", trainer.specialization) != 1)
+        return;
+
+    strcpy(trainer.status, "ACTIVE");
+
+    file = fopen(TRAINERS_FILE, "a");
+
+    if (file == NULL) {
+        printf("Error: Cannot open trainers.txt for writing.\n");
+        return;
+    }
+
+    if (fprintf(file, "%s %s %s %s %s\n",
+                trainer.trainerId,
+                trainer.fullName,
+                trainer.phone,
+                trainer.specialization,
+                trainer.status) < 0) {
+        printf("Error writing trainer record.\n");
+        fclose(file);
+        return;
+    }
+
+    if (fclose(file) != 0) {
+        printf("Error saving trainer record.\n");
+        return;
+    }
+
+    printf("Trainer registered successfully!\n");
 }
 
-// How many assignments belong to this trainer 
-
-int trCountFor(int an, int trainerId)
+/* View all trainers */
+void viewTrainers(void)
 {
-    int i, count = 0;
-    for (i = 0; i < an; i++)
-        if (trAssign[i].trainerId == trainerId)
+    FILE *file = fopen(TRAINERS_FILE, "r");
+    Trainer trainer;
+    int found = 0;
+
+    printf("\n--- All Trainers ---\n");
+    printf("%-10s %-20s %-15s %-20s %-12s\n",
+           "ID", "Name", "Phone", "Specialization", "Status");
+    printf("--------------------------------------------------------------------------\n");
+
+    if (file == NULL) {
+        printf("No trainer file found.\n");
+        return;
+    }
+
+    while (readTrainer(file, &trainer)) {
+        printf("%-10s %-20s %-15s %-20s %-12s\n",
+               trainer.trainerId,
+               trainer.fullName,
+               trainer.phone,
+               trainer.specialization,
+               trainer.status);
+        found = 1;
+    }
+
+    fclose(file);
+
+    if (!found)
+        printf("No trainer records found.\n");
+}
+
+/* Search trainers by ID */
+void searchTrainer(void)
+{
+    Trainer trainer;
+    char trainerId[10];
+    int result;
+
+    printf("\n--- Search Trainer ---\n");
+    printf("Enter Trainer ID: ");
+
+    if (scanf("%9s", trainerId) != 1)
+        return;
+
+    result = findTrainer(trainerId, &trainer);
+
+    if (result == -1)
+        return;
+
+    if (result == 0) {
+        printf("Trainer not found.\n");
+        return;
+    }
+
+    printf("\nTrainer ID: %s\n", trainer.trainerId);
+    printf("Name: %s\n", trainer.fullName);
+    printf("Phone: %s\n", trainer.phone);
+    printf("Specialization: %s\n", trainer.specialization);
+    printf("Status: %s\n", trainer.status);
+}
+
+/* Update trainer details */
+void updateTrainer(void)
+{
+    FILE *file, *temp;
+    Trainer trainer;
+    char trainerId[10];
+    int found = 0;
+    int failed = 0;
+
+    printf("\n--- Update Trainer ---\n");
+    printf("Enter Trainer ID: ");
+
+    if (scanf("%9s", trainerId) != 1)
+        return;
+
+    file = fopen(TRAINERS_FILE, "r");
+
+    if (file == NULL) {
+        printf("No trainer file found.\n");
+        return;
+    }
+
+    temp = fopen(TEMP_FILE, "w");
+
+    if (temp == NULL) {
+        fclose(file);
+        printf("Error creating temporary file.\n");
+        return;
+    }
+
+    while (readTrainer(file, &trainer)) {
+        if (strcmp(trainer.trainerId, trainerId) == 0) {
+            found = 1;
+
+            printf("Enter new name (one word): ");
+            if (scanf("%49s", trainer.fullName) != 1) {
+                failed = 1;
+                break;
+            }
+
+            printf("Enter new phone number: ");
+            if (scanf("%19s", trainer.phone) != 1) {
+                failed = 1;
+                break;
+            }
+
+            printf("Enter new specialization (one word): ");
+            if (scanf("%39s", trainer.specialization) != 1) {
+                failed = 1;
+                break;
+            }
+        }
+
+        if (fprintf(temp, "%s %s %s %s %s\n",
+                    trainer.trainerId,
+                    trainer.fullName,
+                    trainer.phone,
+                    trainer.specialization,
+                    trainer.status) < 0) {
+            failed = 1;
+            break;
+        }
+    }
+
+    if (ferror(file))
+        failed = 1;
+
+    fclose(file);
+
+    if (fclose(temp) != 0)
+        failed = 1;
+
+    if (failed || !found) {
+        remove(TEMP_FILE);
+
+        if (failed)
+            printf("Error processing trainer records. Original file kept.\n");
+        else
+            printf("Trainer not found.\n");
+
+        return;
+    }
+
+    /* Preserve the original file if replacement fails. */
+    if (rename(TEMP_FILE, TRAINERS_FILE) != 0) {
+        printf("Could not replace trainers.txt.\n");
+        printf("Your original file has been preserved.\n");
+        remove(TEMP_FILE);
+        return;
+    }
+
+    printf("Trainer details updated successfully.\n");
+}
+
+/* Activate or deactivate a trainer */
+void changeTrainerStatus(void)
+{
+    FILE *file, *temp;
+    Trainer trainer;
+    char trainerId[10];
+    char newStatus[15];
+    int found = 0;
+    int failed = 0;
+
+    printf("\n--- Change Trainer Status ---\n");
+    printf("Enter Trainer ID: ");
+
+    if (scanf("%9s", trainerId) != 1)
+        return;
+
+    printf("Enter status (ACTIVE/INACTIVE): ");
+
+    if (scanf("%14s", newStatus) != 1)
+        return;
+
+    if (strcmp(newStatus, "ACTIVE") != 0 &&
+        strcmp(newStatus, "INACTIVE") != 0) {
+        printf("Invalid status. Use ACTIVE or INACTIVE.\n");
+        return;
+    }
+
+    file = fopen(TRAINERS_FILE, "r");
+
+    if (file == NULL) {
+        printf("No trainer file found.\n");
+        return;
+    }
+
+    temp = fopen(TEMP_FILE, "w");
+
+    if (temp == NULL) {
+        fclose(file);
+        printf("Error creating temporary file.\n");
+        return;
+    }
+
+    while (readTrainer(file, &trainer)) {
+        if (strcmp(trainer.trainerId, trainerId) == 0) {
+            strcpy(trainer.status, newStatus);
+            found = 1;
+        }
+
+        if (fprintf(temp, "%s %s %s %s %s\n",
+                    trainer.trainerId,
+                    trainer.fullName,
+                    trainer.phone,
+                    trainer.specialization,
+                    trainer.status) < 0) {
+            failed = 1;
+            break;
+        }
+    }
+
+    if (ferror(file))
+        failed = 1;
+
+    fclose(file);
+
+    if (fclose(temp) != 0)
+        failed = 1;
+
+    if (failed || !found) {
+        remove(TEMP_FILE);
+
+        if (failed)
+            printf("Error processing trainer records. Original file kept.\n");
+        else
+            printf("Trainer not found.\n");
+
+        return;
+    }
+
+    if (rename(TEMP_FILE, TRAINERS_FILE) != 0) {
+        printf("Could not replace trainers.txt.\n");
+        printf("Your original file has been preserved.\n");
+        remove(TEMP_FILE);
+        return;
+    }
+
+    printf("Trainer status changed to %s successfully.\n", newStatus);
+}
+
+/* ================================================================== */
+/*  ADDED: members of a trainer                                        */
+/*  Links are saved in data/trainer_members.txt  (memberId trainerId)  */
+/* ================================================================== */
+
+#define MEMBERS_FILE "data/members.txt"
+#define LINKS_FILE "data/trainer_members.txt"
+#define LINKS_TEMP_FILE "data/trainer_members_temp.txt"
+#define MAX_MEMBERS_PER_TRAINER 20
+
+/* Check whether a member ID exists (first word of a line in members.txt) */
+static int memberExists(const char memberId[])
+{
+    FILE *file = fopen(MEMBERS_FILE, "r");
+    char word[100];
+    int c;
+
+    if (file == NULL)
+        return 0;
+
+    while (fscanf(file, "%99s", word) == 1) {
+        if (strcmp(word, memberId) == 0) {
+            fclose(file);
+            return 1;
+        }
+
+        /* skip the rest of this line */
+        c = getc(file);
+        while (c != '\n' && c != EOF)
+            c = getc(file);
+    }
+
+    fclose(file);
+    return 0;
+}
+
+/* Find the trainer of a member. Returns 1 and fills trainerId if found. */
+static int findMemberTrainer(const char memberId[], char trainerId[])
+{
+    FILE *file = fopen(LINKS_FILE, "r");
+    char linkMember[10];
+    char linkTrainer[10];
+
+    if (file == NULL)
+        return 0;
+
+    while (fscanf(file, "%9s %9s", linkMember, linkTrainer) == 2) {
+        if (strcmp(linkMember, memberId) == 0) {
+            strcpy(trainerId, linkTrainer);
+            fclose(file);
+            return 1;
+        }
+    }
+
+    fclose(file);
+    return 0;
+}
+
+/* Count how many members a trainer has */
+static int countMembersOfTrainer(const char trainerId[])
+{
+    FILE *file = fopen(LINKS_FILE, "r");
+    char linkMember[10];
+    char linkTrainer[10];
+    int count = 0;
+
+    if (file == NULL)
+        return 0;
+
+    while (fscanf(file, "%9s %9s", linkMember, linkTrainer) == 2) {
+        if (strcmp(linkTrainer, trainerId) == 0)
             count++;
+    }
+
+    fclose(file);
     return count;
 }
 
-// Asksing for trainer ID and loads the trainers
-
-int trPickTrainer(int *count)
+/* Assign a member to a trainer */
+void assignMemberToTrainer(void)
 {
-    int n, id, pos;
-
-    n = trLoadTrainers();
-    if (n == 0) {
-        printf("  No trainers found. Add a trainer first.\n");
-        return -1;
-    }
-    id = trReadInt("Enter trainer ID: ", 1, 999999);
-    pos = trFindTrainer(n, id);
-    if (pos < 0) {
-        printf("  No trainer with ID %d.\n", id);
-        return -1;
-    }
-    *count = n;
-    return pos;
-}
-
-void trPrintTrainer(trainer *t, int memberCount)
-{
-    printf("  ID             : %d\n", t->id);
-    printf("  Name           : %s\n", t->name);
-    printf("  Phone          : %s\n", t->phone);
-    printf("  Email          : %s\n", t->email);
-    printf("  Specialization : %s\n", t->specialization);
-    printf("  Experience     : %d year(s)\n", t->experienceYears);
-    printf("  Members        : %d / %d\n", memberCount, MAX_TRAINER_MEMBERS);
-}
-
-//  Functions for other modules                                
-
-int trainerExists(int trainerId)
-{
-    int n = trLoadTrainers();
-    return trFindTrainer(n, trainerId) >= 0;
-}
-
-int getMemberTrainer(int memberId)
-{
-    int i, an = trLoadAssignments();
-    for (i = 0; i < an; i++)
-        if (trAssign[i].memberId == memberId)
-            return trAssign[i].trainerId;
-    return -1;
-}
-
-int countTrainerMembers(int trainerId)
-{
-    int an = trLoadAssignments();
-    return trCountFor(an, trainerId);
-}
-
-
-// Trainer records                                                   
-
-void addTrainer(void)
-{
-    trainer t;
-    int n, i;
-    char tmp[100];
-
-    n = trLoadTrainers();
-    if (n >= MAX_TRAINERS) {
-        printf("  The trainer list is full.\n");
-        return;
-    }
-
-    t.id = 1;                             // new ID = highest ID + 1 
-    for (i = 0; i < n; i++)
-        if (trList[i].id >= t.id)
-            t.id = trList[i].id + 1;
-
-    printf("\n--- Add Trainer (ID will be %d) ---\n", t.id);
-    trReadWord("Name (use _ instead of spaces): ", t.name, sizeof(t.name));
-
-    while (1) {
-        trReadWord("Phone (10 digits): ", tmp, 100);
-        if (trIsPhone(tmp))
-            break;
-        printf("  Phone must be exactly 10 digits.\n");
-    }
-    strcpy(t.phone, tmp);
-
-    while (1) {
-        trReadWord("Email: ", tmp, 100);
-        if (trIsEmail(tmp))
-            break;
-        printf("  Enter an email like name@mail.com\n");
-    }
-    strcpy(t.email, tmp);
-
-    trReadWord("Specialization (e.g. Strength, Cardio, Yoga): ",
-               t.specialization, sizeof(t.specialization));
-    t.experienceYears = trReadInt("Years of experience (0-60): ", 0, 60);
-
-    trList[n] = t;                       
-    n++;
-    if (trSaveTrainers(n))
-        printf("  Trainer added successfully. ID = %d\n", t.id);
-}
-
-void viewTrainers(void)
-{
-    int n, an, i, count, total = 0, busiest = 0;
-
-    n = trLoadTrainers();
-    an = trLoadAssignments();
-    if (n == 0) {
-        printf("  No trainers found.\n");
-        return;
-    }
-
-    printf("\n%-4s %-22s %-16s %-4s %s\n", "ID", "Name", "Specialization", "Exp", "Members");
-    printf("----------------------------------------------------------\n");
-    for (i = 0; i < n; i++) {
-        count = trCountFor(an, trList[i].id);
-        total = total + count;
-        if (count > trCountFor(an, trList[busiest].id))
-            busiest = i;
-        printf("%-4d %-22.22s %-16.16s %-4d %d/%d\n", trList[i].id, trList[i].name,
-               trList[i].specialization, trList[i].experienceYears,
-               count, MAX_TRAINER_MEMBERS);
-    }
-
-    printf("\nTotal trainers : %d\n", n);
-    printf("Members assigned: %d (average %.1f per trainer)\n", total, (float)total / n);
-    if (total > 0)
-        printf("Busiest trainer : %s (%d members)\n", trList[busiest].name,
-               trCountFor(an, trList[busiest].id));
-}
-
-void searchTrainer(void)
-{
-    int n, an, choice, id, pos, i, found = 0;
-    char key[100];
-
-    n = trLoadTrainers();
-    an = trLoadAssignments();
-    if (n == 0) {
-        printf("  No trainers found.\n");
-        return;
-    }
-
-    printf("\nSearch by: 1) ID  2) Name  3) Specialization\n");
-    choice = trReadInt("Choice: ", 1, 3);
-
-    if (choice == 1) {
-        id = trReadInt("Trainer ID: ", 1, 999999);
-        pos = trFindTrainer(n, id);
-        if (pos >= 0) {
-            printf("\n");
-            trPrintTrainer(&trList[pos], trCountFor(an, id));
-            found = 1;
-        }
-    } else {
-        trReadWord("Search text: ", key, 100);
-        for (i = 0; i < n; i++) {
-            if ((choice == 2 && trContains(trList[i].name, key)) ||
-                (choice == 3 && trContains(trList[i].specialization, key))) {
-                printf("\n");
-                trPrintTrainer(&trList[i], trCountFor(an, trList[i].id));
-                found++;
-            }
-        }
-    }
-
-    if (found == 0)
-        printf("  No matching trainer found.\n");
-}
-
-void updateTrainer(void)
-{
-    int n, pos, choice;
-    char tmp[100];
-
-    pos = trPickTrainer(&n);
-    if (pos < 0)
-        return;
-
-    printf("\n");
-    trPrintTrainer(&trList[pos], countTrainerMembers(trList[pos].id));
-    trLoadTrainers();                     /* reload, the line above used the file too */
-
-    printf("\nWhat do you want to change?\n");
-    printf(" 1) Name  2) Phone  3) Email  4) Specialization  5) Experience\n");
-    choice = trReadInt("Choice: ", 1, 5);
-
-    if (choice == 1) {
-        trReadWord("New name: ", trList[pos].name, sizeof(trList[pos].name));
-    } else if (choice == 2) {
-        while (1) {
-            trReadWord("New phone (10 digits): ", tmp, 100);
-            if (trIsPhone(tmp))
-                break;
-            printf("  Phone must be exactly 10 digits.\n");
-        }
-        strcpy(trList[pos].phone, tmp);
-    } else if (choice == 3) {
-        while (1) {
-            trReadWord("New email: ", tmp, 100);
-            if (trIsEmail(tmp))
-                break;
-            printf("  Enter an email like name@mail.com\n");
-        }
-        strcpy(trList[pos].email, tmp);
-    } else if (choice == 4) {
-        trReadWord("New specialization: ", trList[pos].specialization,
-                   sizeof(trList[pos].specialization));
-    } else {
-        trList[pos].experienceYears = trReadInt("New years of experience (0-60): ", 0, 60);
-    }
-
-    if (trSaveTrainers(n))
-        printf("  Trainer updated successfully.\n");
-}
-
-void deleteTrainer(void)
-{
-    int n, pos, count, k;
-
-    pos = trPickTrainer(&n);
-    if (pos < 0)
-        return;
-
-    count = countTrainerMembers(trList[pos].id);
-    if (count > 0) {
-        printf("  Cannot delete: %d member(s) are still assigned to %s.\n",
-               count, trList[pos].name);
-        printf("  Unassign them first.\n");
-        return;
-    }
-
-    printf("  Trainer: %s (%s)\n", trList[pos].name, trList[pos].specialization);
-    if (!trConfirm("Delete this trainer? (y/n): ")) {
-        printf("  Cancelled.\n");
-        return;
-    }
-
-    for (k = pos; k < n - 1; k++)         /* move the later trainers up */
-        trList[k] = trList[k + 1];
-    if (trSaveTrainers(n - 1))
-        printf("  Trainer deleted.\n");
-}
-
-//  Assignments and schedule                           
-
-void assignTrainerToMember(void)
-{
-    int memberId, trainerId, n, an, pos, i;
-    char day[10], time[6], tmp[100];
-
-    n = trLoadTrainers();
-    if (n == 0) {
-        printf("  No trainers found. Add a trainer first.\n");
-        return;
-    }
+    FILE *file;
+    Trainer trainer;
+    char memberId[10];
+    char trainerId[10];
+    char currentTrainer[10];
+    int result;
 
     printf("\n--- Assign Member to Trainer ---\n");
-    memberId = trReadInt("Member ID: ", 1, 999999);
-    if (!trMemberExists(memberId)) {
-        printf("  Member %d was not found in %s.\n", memberId, MEMBERS_FILE);
+
+    printf("Enter Member ID: ");
+    if (scanf("%9s", memberId) != 1)
+        return;
+
+    if (!memberExists(memberId)) {
+        printf("Member not found in members.txt.\n");
         return;
     }
 
-    an = trLoadAssignments();
-    for (i = 0; i < an; i++) {
-        if (trAssign[i].memberId == memberId) {
-            printf("  Member %d already has trainer %d. Unassign first.\n",
-                   memberId, trAssign[i].trainerId);
-            return;
-        }
-    }
-
-    trainerId = trReadInt("Trainer ID: ", 1, 999999);
-    pos = trFindTrainer(n, trainerId);
-    if (pos < 0) {
-        printf("  No trainer with ID %d.\n", trainerId);
-        return;
-    }
-    if (trCountFor(an, trainerId) >= MAX_TRAINER_MEMBERS) {
-        printf("  %s already has the maximum of %d members.\n",
-               trList[pos].name, MAX_TRAINER_MEMBERS);
-        return;
-    }
-    if (an >= MAX_ASSIGNMENTS) {
-        printf("  The assignment list is full.\n");
+    if (findMemberTrainer(memberId, currentTrainer)) {
+        printf("This member already has trainer %s.\n", currentTrainer);
+        printf("Remove the member from that trainer first.\n");
         return;
     }
 
-    while (1) {                           // day of the session 
-        trReadWord("Session day (Mon Tue Wed Thu Fri Sat Sun): ", day, 10);
-        if (trDayIndex(day) >= 0)
-            break;
-        printf("  Type the day exactly like Mon, Tue, Wed...\n");
+    printf("Enter Trainer ID: ");
+    if (scanf("%9s", trainerId) != 1)
+        return;
+
+    result = findTrainer(trainerId, &trainer);
+
+    if (result == -1)
+        return;
+
+    if (result == 0) {
+        printf("Trainer not found.\n");
+        return;
     }
 
-    while (1) {                           // time of the session
-        trReadWord("Session time (HH:MM): ", tmp, 100);
-        if (!trIsTime(tmp)) {
-            printf("  Use HH:MM, e.g. 07:30\n");
-            continue;
-        }
-        strcpy(time, tmp);
-        for (i = 0; i < an; i++) {        // is this slot already taken? 
-            if (trAssign[i].trainerId == trainerId &&
-                strcmp(trAssign[i].sessionDay, day) == 0 &&
-                strcmp(trAssign[i].sessionTime, time) == 0)
-                break;
-        }
-        if (i == an)
-            break;                        // slot is free 
-        printf("  This trainer already has a session on %s at %s.\n", day, time);
+    if (strcmp(trainer.status, "ACTIVE") != 0) {
+        printf("This trainer is not ACTIVE.\n");
+        return;
     }
 
-    trAssign[an].memberId = memberId;
-    trAssign[an].trainerId = trainerId;
-    strcpy(trAssign[an].sessionDay, day);
-    strcpy(trAssign[an].sessionTime, time);
-    if (trSaveAssignments(an + 1))
-        printf("  Member %d assigned to %s on %s at %s.\n",
-               memberId, trList[pos].name, day, time);
+    if (countMembersOfTrainer(trainerId) >= MAX_MEMBERS_PER_TRAINER) {
+        printf("This trainer already has %d members (maximum).\n",
+               MAX_MEMBERS_PER_TRAINER);
+        return;
+    }
+
+    file = fopen(LINKS_FILE, "a");
+
+    if (file == NULL) {
+        printf("Error: Cannot open trainer_members.txt for writing.\n");
+        return;
+    }
+
+    if (fprintf(file, "%s %s\n", memberId, trainerId) < 0) {
+        printf("Error writing the record.\n");
+        fclose(file);
+        return;
+    }
+
+    if (fclose(file) != 0) {
+        printf("Error saving the record.\n");
+        return;
+    }
+
+    printf("Member %s assigned to %s successfully!\n", memberId, trainer.fullName);
 }
 
-void unassignMember(void)
+/* Remove a member from their trainer */
+void removeMemberFromTrainer(void)
 {
-    int memberId, an, i, k;
+    FILE *file, *temp;
+    char memberId[10];
+    char linkMember[10];
+    char linkTrainer[10];
+    int found = 0;
+    int failed = 0;
 
-    an = trLoadAssignments();
-    if (an == 0) {
-        printf("  No assignments found.\n");
+    printf("\n--- Remove Member from Trainer ---\n");
+    printf("Enter Member ID: ");
+
+    if (scanf("%9s", memberId) != 1)
+        return;
+
+    file = fopen(LINKS_FILE, "r");
+
+    if (file == NULL) {
+        printf("No members are assigned to any trainer yet.\n");
         return;
     }
-    memberId = trReadInt("Member ID to unassign: ", 1, 999999);
 
-    for (i = 0; i < an; i++) {
-        if (trAssign[i].memberId == memberId) {
-            printf("  Member %d - trainer %d, %s %s\n", memberId, trAssign[i].trainerId,
-                   trAssign[i].sessionDay, trAssign[i].sessionTime);
-            if (!trConfirm("Remove this assignment? (y/n): ")) {
-                printf("  Cancelled.\n");
-                return;
-            }
-            for (k = i; k < an - 1; k++)
-                trAssign[k] = trAssign[k + 1];
-            if (trSaveAssignments(an - 1))
-                printf("  Member unassigned.\n");
-            return;
+    temp = fopen(LINKS_TEMP_FILE, "w");
+
+    if (temp == NULL) {
+        fclose(file);
+        printf("Error creating temporary file.\n");
+        return;
+    }
+
+    while (fscanf(file, "%9s %9s", linkMember, linkTrainer) == 2) {
+        if (strcmp(linkMember, memberId) == 0) {
+            found = 1;
+            continue;               /* leave this record out */
+        }
+
+        if (fprintf(temp, "%s %s\n", linkMember, linkTrainer) < 0) {
+            failed = 1;
+            break;
         }
     }
-    printf("  Member %d has no trainer assigned.\n", memberId);
+
+    if (ferror(file))
+        failed = 1;
+
+    fclose(file);
+
+    if (fclose(temp) != 0)
+        failed = 1;
+
+    if (failed || !found) {
+        remove(LINKS_TEMP_FILE);
+
+        if (failed)
+            printf("Error processing records. Original file kept.\n");
+        else
+            printf("This member has no trainer.\n");
+
+        return;
+    }
+
+    if (rename(LINKS_TEMP_FILE, LINKS_FILE) != 0) {
+        printf("Could not replace trainer_members.txt.\n");
+        printf("Your original file has been preserved.\n");
+        remove(LINKS_TEMP_FILE);
+        return;
+    }
+
+    printf("Member removed from trainer successfully.\n");
 }
 
+/* Show the members of one trainer */
 void viewTrainerMembers(void)
 {
-    int n, pos, an, i, count = 0;
+    FILE *file;
+    Trainer trainer;
+    char trainerId[10];
+    char linkMember[10];
+    char linkTrainer[10];
+    int result;
+    int count = 0;
 
-    pos = trPickTrainer(&n);
-    if (pos < 0)
+    printf("\n--- Members of a Trainer ---\n");
+    printf("Enter Trainer ID: ");
+
+    if (scanf("%9s", trainerId) != 1)
         return;
-    an = trLoadAssignments();
 
-    printf("\nTrainer: %s (%s)\n", trList[pos].name, trList[pos].specialization);
-    printf("%-10s %-5s %s\n", "Member ID", "Day", "Time");
-    printf("------------------------\n");
-    for (i = 0; i < an; i++) {
-        if (trAssign[i].trainerId == trList[pos].id) {
-            printf("%-10d %-5s %s\n", trAssign[i].memberId,
-                   trAssign[i].sessionDay, trAssign[i].sessionTime);
-            count++;
-        }
+    result = findTrainer(trainerId, &trainer);
+
+    if (result == -1)
+        return;
+
+    if (result == 0) {
+        printf("Trainer not found.\n");
+        return;
     }
+
+    printf("\nTrainer: %s (%s)\n", trainer.fullName, trainer.trainerId);
+    printf("Members:\n");
+
+    file = fopen(LINKS_FILE, "r");
+
+    if (file != NULL) {
+        while (fscanf(file, "%9s %9s", linkMember, linkTrainer) == 2) {
+            if (strcmp(linkTrainer, trainerId) == 0) {
+                printf("  %s\n", linkMember);
+                count++;
+            }
+        }
+        fclose(file);
+    }
+
     if (count == 0)
         printf("  No members assigned.\n");
     else
-        printf("Members: %d / %d\n", count, MAX_TRAINER_MEMBERS);
+        printf("Total: %d / %d\n", count, MAX_MEMBERS_PER_TRAINER);
 }
 
-void viewTrainerSchedule(void)
+/* Print one row of the menu box (the box is 80 characters wide inside) */
+static void printMenuRow(const char text[])
 {
-    int n, pos, an, d, i, any;
-
-    pos = trPickTrainer(&n);
-    if (pos < 0)
-        return;
-    an = trLoadAssignments();
-
-    printf("\nWeekly schedule - %s\n", trList[pos].name);
-    printf("------------------------------------------\n");
-    for (d = 0; d < 7; d++) {             /* go through the days of the week */
-        printf("%s: ", trDays[d]);
-        any = 0;
-        for (i = 0; i < an; i++) {
-            if (trAssign[i].trainerId == trList[pos].id &&
-                strcmp(trAssign[i].sessionDay, trDays[d]) == 0) {
-                if (any)
-                    printf(", ");
-                printf("%s (Member %d)", trAssign[i].sessionTime, trAssign[i].memberId);
-                any = 1;
-            }
-        }
-        if (!any)
-            printf("-");
-        printf("\n");
-    }
+    printf("║    %-76s║\n", text);
 }
 
-// menu
-
+/* Trainer management menu */
 void trainerMenu(void)
 {
     int choice;
+    int ch;
 
     do {
-        printf("\n========== TRAINER MANAGEMENT ==========\n");
-        printf(" 1. Add trainer\n");
-        printf(" 2. View trainers\n");
-        printf(" 3. Search trainer\n");
-        printf(" 4. Update trainer\n");
-        printf(" 5. Delete trainer\n");
-        printf(" 6. Assign member to trainer\n");
-        printf(" 7. Unassign member\n");
-        printf(" 8. View trainer's members\n");
-        printf(" 9. View trainer's weekly schedule\n");
-        printf(" 0. Back\n");
-        choice = trReadInt("Choice: ", 0, 9);
+        printLogoWithoutl();
+        printf("║%31s%s%31s║\n", "", "TRAINER MANAGEMENT", "");
+        printf("║                                                                                ║\n");
+        printMenuRow("1. Register Trainer");
+        printMenuRow("2. View All Trainers");
+        printMenuRow("3. Search Trainer");
+        printMenuRow("4. Update Trainer Details");
+        printMenuRow("5. Activate/Deactivate Trainer");
+        printMenuRow("6. Assign Member to Trainer");
+        printMenuRow("7. Remove Member from Trainer");
+        printMenuRow("8. View a Trainer's Members");
+        printMenuRow("9. Return to Main Menu");
+        printf("║                                                                                ║\n");
+        printf("╚════════════════════════════════════════════════════════════════════════════════╝\n");
+        printf("Enter your choice: ");
+
+        if (scanf("%d", &choice) != 1) {
+            while ((ch = getchar()) != '\n' && ch != EOF) {
+            }
+            choice = 0;
+        }
 
         switch (choice) {
-            case 1: addTrainer();            break;
-            case 2: viewTrainers();          break;
-            case 3: searchTrainer();         break;
-            case 4: updateTrainer();         break;
-            case 5: deleteTrainer();         break;
-            case 6: assignTrainerToMember(); break;
-            case 7: unassignMember();        break;
-            case 8: viewTrainerMembers();    break;
-            case 9: viewTrainerSchedule();   break;
+            case 1:
+                registerTrainer();
+                break;
+            case 2:
+                viewTrainers();
+                break;
+            case 3:
+                searchTrainer();
+                break;
+            case 4:
+                updateTrainer();
+                break;
+            case 5:
+                changeTrainerStatus();
+                break;
+            case 6:
+                assignMemberToTrainer();
+                break;
+            case 7:
+                removeMemberFromTrainer();
+                break;
+            case 8:
+                viewTrainerMembers();
+                break;
+            case 9:
+                printf("Returning to main menu...\n");
+                break;
+            default:
+                printf("Invalid choice. Please try again.\n");
         }
-    } while (choice != 0);
+
+    } while (choice != 9);
 }
