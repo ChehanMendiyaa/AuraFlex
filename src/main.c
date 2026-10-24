@@ -44,7 +44,7 @@ int main(void)
         printf("\nAccess denied. Program terminated.\n");
         return 1;
     }
-    
+
     /* Determine the logout menu number */
     if (strcmp(loggedUser.role, "ADMIN") == 0) {
         logoutChoice = 7;
@@ -95,7 +95,6 @@ int main(void)
             printf("6. Logout\n");
         }
 
-        printf("Enter your choice: ");
 
         if (scanf("%d", &choice) != 1) {
             printf("\nInvalid input. Please enter a number.\n");
