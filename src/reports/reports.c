@@ -284,7 +284,7 @@ void summaryReport(void)
     printf("Total recorded payment amount:  %.2f\n",
            totalPaymentAmount);
 
-    printf("\n=============================================\n");
+    printf("\n======================================\n");
 }
 
 /* Main reports menu */
