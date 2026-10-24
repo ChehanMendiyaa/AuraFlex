@@ -52,13 +52,24 @@ printf("╚═══════════════════╩═══
 ║     P001          ║   M001          ║   3000.00       ║  2026-10-21        ║ CASH       ║
 ╚═══════════════════╩═════════════════╩═════════════════╩════════════════════╩════════════╝
 
-printf("╔═════════════════════════════════════════════════════════════════════════════════════════╗\n");
-printf("║                                     ALL TRAINERS                                        ║\n");
-printf("║                                                                                         ║\n");
-printf("╠═══════════════════╦═════════════════╦═════════════════╦════════════════════╦════════════╣\n");
-printf("║    Trainer ID     ║    Full Name    ║      Phone      ║   Specialization   ║   Status   ║\n");
-printf("╠═══════════════════╬═════════════════╬═════════════════╬════════════════════╬════════════╬\n");
+printf("╔══════════════════════════════════════════════════════════════════════════════════════╗\n");
+printf("║                                 MEMBER REPORT                                        ║\n");
+printf("║                                                                                      ║\n");
+printf("╠════════════╦═════════════════════╦══════════════╦═══════════════════════╦════════════╣\n");
+printf("║     ID     ║ MEMBER              ║     Date     ║   Check-In            ║Check-Out   ║\n");
+printf("╠════════════╬═════════════════════╬══════════════╬═══════════════════════╬════════════╣\n");
+
+
 printf("║      %s           ║      %s         ║        %s       ║          %s        ║     %s     ║\n")
+
+
+
+╔══════════════════════════════════════════════════════════════════════════════════════╗
+║                                 MEMBER REPORT                                        ║
+║                                                                                      ║
+╠════════════╦═════════════════════╦══════════════╦═══════════════════════╦════════════╣
+║     ID     ║ MEMBER              ║     Date     ║   Check-In            ║Check-Out   ║
+╠════════════╬═════════════════════╬══════════════╬═══════════════════════╬════════════╣
 
 
 ╔════════════════════════════════════════════════════════════════════════╗
@@ -79,26 +90,29 @@ printf("║      %s           ║      %s         ║        %s       ║       
 
 
 
- printLogoWithoutl();
+printLogoWithoutl();
 
-printf("║   [1]  Register Trainer                                                        ║\n");
-printf("║   [2]  View All Trainers                                                       ║\n");
-printf("║   [3]  Search Trainer                                                          ║\n");
-printf("║   [4]  Update Trainer Details                                                  ║\n");
-printf("║   [5]  Activate/Deactivate Trainer                                             ║\n");
-printf("║   [6]  Assign Member to Trainer                                                ║\n");
-printf("║   [7]  Remove Member from Trainer                                              ║\n");
-printf("║   [8]  View a Trainer's Members                                                ║\n");
-printf("║   [9]  Return to Main Menu                                                     ║\n");
+printf("║   [1]  Member Report                                                           ║\n");
+printf("║   [2]  Membership Report                                                       ║\n");
+printf("║   [3]  Expired Membership Report                                               ║\n");
+printf("║   [4]  Payment Report                                                          ║\n");
+printf("║   [5]  Summary Report                                                          ║\n");
+printf("║   [6]  Return to Main Menu                                                     ║\n");
 printf("╚════════════════════════════════════════════════════════════════════════════════╝\n");
 printf("Enter choice: ");
 
 
-╔═════════════════════════════════════════════════════════════════╗
-║                       Attendance History                        ║
-║                                                                 ║
-╠════════════╦══════════╦══════════════╦══════════════╦═══════════╣
-║   ID       ║ MEMBER   ║     Date     ║   Check-In   ║Check-Out  ║
-╠════════════╬══════════╬══════════════╬══════════════╬═══════════╣
+
 ║ A001       ║ 002      ║ 2026-10-19   ║ 17:34        ║  -        ║
 ╚════════════╩══════════╩══════════════╩══════════════╩═══════════╝
+
+     ========== MEMBER REPORT ==========
+     ID         Name                 Phone           Email                     Status      
+     --------------------------------------------------------------------------
+     M001       Kasun                0771234567      kasun@gmail.com           ACTIVE      
+     M002       Nimal                0712345678      nimal@gmail.com           ACTIVE      
+     M003       Amaya                0751234567      amaya@gmail.com           ACTIVE      
+     M004       naknnfafa            fawnfkaflma     awffawfa                  ACTIVE      
+     M005       Kavi                 0721234567      kavi@gmail.com            FROZEN      
+     M013       Kiwith               0751234567      kiwith@example.com        ACTIVE      
+     M014       Pasindu              0771234567      pasindu@example.com       FROZEN  
