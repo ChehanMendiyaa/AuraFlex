@@ -1,533 +1,706 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-#include <time.h>
+
 #include "membership.h"
+#include "member.h"
+#include "payment.h"
+#include "ui.h"
 #include "system.h"
 
-#define MEMBER_FILE "data/members.txt"
+#define MEMBER_FILE     "data/members.txt"
 #define MEMBERSHIP_FILE "data/memberships.txt"
-#define PAYMENT_FILE "data/payments.txt"
-#define TEMP_FILE "data/temp.txt"
+#define TEMP_FILE       "data/temp.txt"
+#define BACKUP_FILE     "data/memberships.bak"
 
-/* Check member ID and name */
-static int checkMember(char id[], char name[])
+int readMembership(FILE *fp, Membership *m);
+/* ---------------------------------------------------------
+   INPUT HELPERS
+   --------------------------------------------------------- */
+
+static void clearInputBuffer(void)
 {
-    char savedID[10], savedName[50];
-    char phone[20], email[60], status[15];
+    int ch;
 
-    FILE *file = fopen(MEMBER_FILE, "r");
-    if (file == NULL) return 0;
+    while ((ch = getchar()) != '\n' && ch != EOF) {
+        /* Discard remaining characters */
+    }
+}
 
-    while (fscanf(file, "%9s %49s %19s %59s %14s",
-                  savedID, savedName, phone, email, status) == 5) {
-        if (strcmp(id, savedID) == 0 &&
-            strcmp(name, savedName) == 0) {
-            fclose(file);
-            return 1;
+static int readChoice(void)
+{
+    int choice;
+    int ch;
+
+    if (scanf("%d", &choice) != 1) {
+        clearInputBuffer();
+        return -1;
+    }
+
+    while ((ch = getchar()) != '\n' && ch != EOF) {
+        /* Discard remaining characters */
+    }
+
+    return choice;
+}
+
+static void pauseScreen(void)
+{
+    printf("\nPress Enter to continue...");
+    clearInputBuffer();
+    getchar();
+}
+
+/* ---------------------------------------------------------
+   CHECK MEMBER
+   Assumes member ID is the first field in members.txt.
+   Read the rest of each line from the FILE, not stdin.
+   --------------------------------------------------------- */
+
+int checkMember(const char *memberId)
+{
+    FILE *fp;
+    char line[512];
+    char id[20];
+
+    if (memberId == NULL || memberId[0] == '\0') {
+        return 0;
+    }
+
+    fp = fopen(MEMBER_FILE, "r");
+
+    if (fp == NULL) {
+        return 0;
+    }
+
+    while (fgets(line, sizeof(line), fp) != NULL) {
+        if (sscanf(line, "%19s", id) == 1) {
+            if (strcmp(id, memberId) == 0) {
+                fclose(fp);
+                return 1;
+            }
         }
     }
 
-    fclose(file);
+    fclose(fp);
     return 0;
 }
 
-/* Check whether membership ID is already used */
-static int checkMembershipID(char id[])
+/* ---------------------------------------------------------
+   CHECK MEMBERSHIP ID
+   --------------------------------------------------------- */
+
+int checkMembershipID(const char *membershipId)
 {
+    FILE *fp;
     Membership m;
-    FILE *file = fopen(MEMBERSHIP_FILE, "r");
-    if (file == NULL) return 0;
 
-    while (fscanf(file, "%9s %9s %19s %10s %10s %f %14s",
-                  m.membershipId, m.memberId, m.planName,
-                  m.startDate, m.endDate, &m.fee, m.status) == 7) {
-        if (strcmp(id, m.membershipId) == 0) {
-            fclose(file);
+    if (membershipId == NULL || membershipId[0] == '\0') {
+        return 0;
+    }
+
+    fp = fopen(MEMBERSHIP_FILE, "r");
+
+    if (fp == NULL) {
+        return 0;
+    }
+
+    while (readMembership(fp, &m)) {
+        if (strcmp(m.membershipId, membershipId) == 0) {
+            fclose(fp);
             return 1;
         }
     }
 
-    fclose(file);
+    fclose(fp);
     return 0;
 }
 
-/* Check whether payment ID is already used */
-static int checkPaymentID(char id[])
-{
-    Payment p;
-    FILE *file = fopen(PAYMENT_FILE, "r");
-    if (file == NULL) return 0;
+/* ---------------------------------------------------------
+   READ MEMBERSHIP RECORD
+   Format:
+   membershipId memberId planName startDate endDate fee status
+   --------------------------------------------------------- */
 
-    while (fscanf(file, "%9s %9s %f %10s %19s",
-                  p.paymentId, p.memberId, &p.amount,
-                  p.paymentDate, p.method) == 5) {
-        if (strcmp(id, p.paymentId) == 0) {
-            fclose(file);
-            return 1;
+int readMembership(FILE *fp, Membership *m)
+{
+    if (fp == NULL || m == NULL) {
+        return 0;
+    }
+
+    return fscanf(fp, "%19s %19s %49s %14s %14s %f %19s",
+                  m->membershipId,
+                  m->memberId,
+                  m->planName,
+                  m->startDate,
+                  m->endDate,
+                  &m->fee,
+                  m->status) == 7;
+}
+
+/* ---------------------------------------------------------
+   WRITE MEMBERSHIP RECORD
+   --------------------------------------------------------- */
+
+void writeMembership(FILE *fp, const Membership *m)
+{
+    if (fp == NULL || m == NULL) {
+        return;
+    }
+
+    fprintf(fp, "%s %s %s %s %s %.2f %s\n",
+            m->membershipId,
+            m->memberId,
+            m->planName,
+            m->startDate,
+            m->endDate,
+            m->fee,
+            m->status);
+}
+
+/* ---------------------------------------------------------
+   SAVE TEMPORARY MEMBERSHIP FILE
+   Uses a backup so the original can be restored on failure.
+   --------------------------------------------------------- */
+
+static int replaceMembershipFile(void)
+{
+    /*
+       Do not delete an existing backup before checking it.
+       An existing backup may be the only recovery copy.
+    */
+
+    FILE *check = fopen(BACKUP_FILE, "r");
+
+    if (check != NULL) {
+        fclose(check);
+        printf("Backup file already exists: %s\n", BACKUP_FILE);
+        printf("Please inspect or restore it before continuing.\n");
+        remove(TEMP_FILE);
+        return 0;
+    }
+
+    if (rename(MEMBERSHIP_FILE, BACKUP_FILE) != 0) {
+        printf("Unable to back up membership file!\n");
+        remove(TEMP_FILE);
+        return 0;
+    }
+
+    if (rename(TEMP_FILE, MEMBERSHIP_FILE) != 0) {
+        printf("Unable to update membership file!\n");
+
+        if (rename(BACKUP_FILE, MEMBERSHIP_FILE) != 0) {
+            printf("Warning: Could not restore the original membership file!\n");
+            printf("Your backup remains at: %s\n", BACKUP_FILE);
         }
-    }
 
-    fclose(file);
-    return 0;
-}
-
-/* Read one membership from file */
-static int readMembership(Membership *m, FILE *file)
-{
-    return fscanf(file, "%9s %9s %19s %10s %10s %f %14s",
-                  m->membershipId, m->memberId, m->planName,
-                  m->startDate, m->endDate, &m->fee, m->status) == 7;
-}
-
-/* Write one membership to file */
-static int writeMembership(Membership *m, FILE *file)
-{
-    return fprintf(file, "%s %s %s %s %s %.2f %s\n",
-                   m->membershipId, m->memberId, m->planName,
-                   m->startDate, m->endDate, m->fee, m->status) >= 0;
-}
-
-/* Save a payment */
-static int savePayment(Payment *p)
-{
-    if (checkPaymentID(p->paymentId)) {
-        clearScreen2s();
-        printf("This Payment ID is already used.\n");
+        remove(TEMP_FILE);
         return 0;
     }
 
-    FILE *file = fopen(PAYMENT_FILE, "a");
-    if (file == NULL) {
-        clearScreen2s();
-        printf("Cannot open payment file.\n");
-        return 0;
+    if (remove(BACKUP_FILE) != 0) {
+        printf("Warning: Membership saved, but backup could not be removed.\n");
     }
 
-    int saved = fprintf(file, "%s %s %.2f %s %s\n",
-                        p->paymentId, p->memberId, p->amount,
-                        p->paymentDate, p->method) >= 0;
-    if (fclose(file) != 0) saved = 0;
-    return saved;
+    return 1;
 }
 
-/* Take payment for a membership */
-static int takePayment(Membership *m)
-{
-    Payment p;
-    char name[50];
+/* ---------------------------------------------------------
+   ASSIGN MEMBERSHIP
+   --------------------------------------------------------- */
 
-    printf("Confirm member name: ");
-    if (scanf("%49s", name) != 1) return 0;
-
-    if (!checkMember(m->memberId, name)) {
-        clearScreen2s();
-        printf("Member ID and name do not match.\n");
-        return 0;
-    }
-
-    printf("Payment ID: ");
-    if (scanf("%9s", p.paymentId) != 1) return 0;
-
-    printf("Payment date (YYYY-MM-DD): ");
-    if (scanf("%10s", p.paymentDate) != 1) return 0;
-
-    printf("Payment method (Cash/Card/Transfer): ");
-    if (scanf("%19s", p.method) != 1) return 0;
-
-    strcpy(p.memberId, m->memberId);
-    p.amount = m->fee;
-
-    if (savePayment(&p)) {
-        printf("Payment saved successfully.\n");
-        clearScreen2s();
-        return 1;
-    }
-
-    return 0;
-}
-
-/* Assign a membership */
 void assignMembership(void)
 {
     Membership m;
-    char name[50], answer;
+    FILE *fp;
 
     clearScreen();
-    printf("\n===== ASSIGN MEMBERSHIP =====\n");
+    printf("\n========== ASSIGN MEMBERSHIP ==========\n");
 
-    printf("Membership ID: ");
-    if (scanf("%9s", m.membershipId) != 1) return;
+    printf("Enter Membership ID: ");
+
+    if (scanf("%19s", m.membershipId) != 1) {
+        clearInputBuffer();
+        printf("Invalid membership ID.\n");
+        return;
+    }
 
     if (checkMembershipID(m.membershipId)) {
-        printf("Membership ID already exists.\n");
+        printf("Membership ID already exists!\n");
         return;
     }
 
-    printf("Member ID: ");
-    if (scanf("%9s", m.memberId) != 1) return;
+    printf("Enter Member ID: ");
 
-    printf("Member name: ");
-    if (scanf("%49s", name) != 1) return;
-
-    if (!checkMember(m.memberId, name)) {
-        clearScreen2s();
-        printf("Member ID and name do not match.\n");
+    if (scanf("%19s", m.memberId) != 1) {
+        clearInputBuffer();
+        printf("Invalid member ID.\n");
         return;
     }
 
-    printf("Plan (Monthly/Quarterly/Yearly): ");
-    if (scanf("%19s", m.planName) != 1) return;
-
-    printf("Start date (YYYY-MM-DD): ");
-    if (scanf("%10s", m.startDate) != 1) return;
-
-    printf("End date (YYYY-MM-DD): ");
-    if (scanf("%10s", m.endDate) != 1) return;
-
-    if (strcmp(m.startDate, m.endDate) >= 0) {
-        printf("End date must be after start date.\n");
+    if (!checkMember(m.memberId)) {
+        printf("Member does not exist!\n");
         return;
     }
 
-    printf("Membership fee: ");
-    if (scanf("%f", &m.fee) != 1 || m.fee <= 0) {
-        printf("Fee must be greater than zero.\n");
+    printf("Enter Plan Name: ");
+
+    if (scanf("%49s", m.planName) != 1) {
+        clearInputBuffer();
+        printf("Invalid plan name.\n");
+        return;
+    }
+
+    printf("Enter Start Date (YYYY-MM-DD): ");
+
+    if (scanf("%14s", m.startDate) != 1) {
+        clearInputBuffer();
+        printf("Invalid start date input.\n");
+        return;
+    }
+
+    printf("Enter End Date (YYYY-MM-DD): ");
+
+    if (scanf("%14s", m.endDate) != 1) {
+        clearInputBuffer();
+        printf("Invalid end date input.\n");
+        return;
+    }
+
+    /* Membership date validation intentionally removed. */
+
+    printf("Enter Membership Fee: ");
+
+    if (scanf("%f", &m.fee) != 1 || m.fee <= 0.0f) {
+        clearInputBuffer();
+        printf("Invalid membership fee! Fee must be greater than zero.\n");
         return;
     }
 
     strcpy(m.status, "ACTIVE");
 
-    FILE *file = fopen(MEMBERSHIP_FILE, "a");
-    if (file == NULL) {
-        clearScreen();
-        printf("Cannot open membership file.\n");
+    /*
+       Reuse the payment module.
+       It handles payment ID generation, date, method,
+       validation, and writing the payment record.
+    */
+
+    if (!processMembershipPayment(m.memberId, m.fee)) {
+        printf("Membership assignment cancelled because payment failed.\n");
         return;
     }
 
-    int saved = writeMembership(&m, file);
-    if (fclose(file) != 0) saved = 0;
+    fp = fopen(MEMBERSHIP_FILE, "a");
 
-    if (!saved) {
-        printf("Could not save membership.\n");
+    if (fp == NULL) {
+        printf("Error opening membership file!\n");
+        printf("Warning: Payment may already have been recorded.\n");
         return;
     }
 
-    printf("Membership assigned successfully.\n");
-    printf("Pay now? (Y/N): ");
+    writeMembership(fp, &m);
 
-    if (scanf(" %c", &answer) != 1) return;
-
-    if (answer == 'Y' || answer == 'y') {
-        if (!takePayment(&m))
-            printf("Payment can be recorded later.\n");
-    } else {
-        printf("Payment can be recorded later.\n");
+    if (fclose(fp) != 0) {
+        printf("Error closing membership file.\n");
+        printf("Warning: Please verify the membership record.\n");
+        return;
     }
+
+    printf("\nMembership assigned successfully!\n");
 }
 
-/* Display all memberships */
+/* ---------------------------------------------------------
+   VIEW ALL MEMBERSHIPS
+   --------------------------------------------------------- */
+
 void viewMemberships(void)
 {
+    FILE *fp = fopen(MEMBERSHIP_FILE, "r");
     Membership m;
-    FILE *file = fopen(MEMBERSHIP_FILE, "r");
+    clearScreen();
+    // printf("\n========== ALL MEMBERSHIPS ==========\n");
 
-    if (file == NULL) {
-        printf("No memberships found.\n");
-        clearScreen2s();
+    if (fp == NULL)
+    {
+        printf("No membership records found.\n");
         return;
     }
 
-    clearScreen();
-    printf("\n===== ALL MEMBERSHIPS =====\n");
+    // printf("%-15s %-15s %-15s %-12s %-12s %-12s %-12s\n",
+    //        "Membership ID", "Member ID", "Plan",
+    //        "Start Date", "End Date", "Fee", "Status");
 
-    while (readMembership(&m, file)) {
-        printf("\nMembership ID: %s\n", m.membershipId);
-        printf("Member ID: %s\n", m.memberId);
-        printf("Plan: %s\n", m.planName);
-        printf("Start date: %s\n", m.startDate);
-        printf("End date: %s\n", m.endDate);
-        printf("Fee: %.2f\n", m.fee);
-        printf("Status: %s\n", m.status);
+    // printf("--------------------------------------------------------------------------------\n");
+
+    printf("╔═════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗\n");
+    printf("║                                              ALL MEMBERSHIPS                                                    ║\n");
+    printf("║                                                                                                                 ║\n");
+    printf("╠═══════════════════╦══════════════════╦═════════════════╦═════════════╦═══════════════╦═════════════╦════════════╣\n");
+    printf("║ MEMBERSHIP ID     ║    MEMBER ID     ║     PLAN        ║ START DATE  ║   END DATE    ║     FEE     ║  STATUS    ║\n");
+    printf("╠═══════════════════╬══════════════════╬═════════════════╬═════════════╬═══════════════╬═════════════╬════════════╣\n");
+
+    while (readMembership(fp, &m))
+    {
+        printf("║    %-15s║  %-15s ║  %-15s║%-12s ║  %-12s ║ %-12.2f║%-12s║\n",
+               m.membershipId,
+               m.memberId,
+               m.planName,
+               m.startDate,
+               m.endDate,
+               m.fee,
+               m.status);
     }
 
-    fclose(file);
+    fclose(fp);
+    printf("╚═══════════════════╩══════════════════╩═════════════════╩═════════════╩═══════════════╩═════════════╩════════════╝\n");
 }
+/* ---------------------------------------------------------
+   RENEW MEMBERSHIP
+   --------------------------------------------------------- */
 
-/* Renew a membership */
 void renewMembership(void)
 {
+    char membershipId[20];
     Membership m;
-    char id[10];
-    int found = 0, error = 0;
+    FILE *fp;
+    FILE *temp;
+    int found = 0;
+    int paymentSucceeded = 0;
 
-    printf("Membership ID to renew: ");
-    if (scanf("%9s", id) != 1) return;
+    clearScreen();
+    printf("\n========== RENEW MEMBERSHIP ==========\n");
+    printf("Enter Membership ID: ");
 
-    FILE *file = fopen(MEMBERSHIP_FILE, "r");
-    if (file == NULL) {
-        printf("No memberships found.\n");
-        clearScreen2s();
+    if (scanf("%19s", membershipId) != 1) {
+        clearInputBuffer();
+        printf("Invalid membership ID.\n");
         return;
     }
 
-    FILE *temp = fopen(TEMP_FILE, "w");
+    fp = fopen(MEMBERSHIP_FILE, "r");
+
+    if (fp == NULL) {
+        printf("Unable to open membership file!\n");
+        return;
+    }
+
+    temp = fopen(TEMP_FILE, "w");
+
     if (temp == NULL) {
-        fclose(file);
-        printf("Cannot create temporary file.\n");
-        clearScreen2s();
+        fclose(fp);
+        printf("Unable to create temporary file!\n");
         return;
     }
 
-    while (readMembership(&m, file)) {
-        if (strcmp(m.membershipId, id) == 0) {
+    while (readMembership(fp, &m)) {
+        if (strcmp(m.membershipId, membershipId) == 0) {
             found = 1;
 
             if (strcmp(m.status, "CANCELLED") == 0) {
-                printf("Cancelled membership cannot be renewed.\n");
-                error = 1;
+                printf("Cannot renew a cancelled membership.\n");
+                fclose(fp);
+                fclose(temp);
+                remove(TEMP_FILE);
+                return;
+            }
+
+            printf("Member ID         : %s\n", m.memberId);
+            printf("Current Plan      : %s\n", m.planName);
+            printf("Current End Date  : %s\n", m.endDate);
+
+            printf("Enter New Start Date (YYYY-MM-DD): ");
+
+            if (scanf("%14s", m.startDate) != 1) {
+                clearInputBuffer();
+                fclose(fp);
+                fclose(temp);
+                remove(TEMP_FILE);
+                printf("Invalid start date input.\n");
+                return;
+            }
+
+            printf("Enter New End Date (YYYY-MM-DD): ");
+
+            if (scanf("%14s", m.endDate) != 1) {
+                clearInputBuffer();
+                fclose(fp);
+                fclose(temp);
+                remove(TEMP_FILE);
+                printf("Invalid end date input.\n");
+                return;
+            }
+
+            /* Membership date validation intentionally removed. */
+
+            printf("Enter Renewal Fee: ");
+
+            if (scanf("%f", &m.fee) != 1 || m.fee <= 0.0f) {
+                clearInputBuffer();
+                fclose(fp);
+                fclose(temp);
+                remove(TEMP_FILE);
+                printf("Invalid renewal fee! Fee must be greater than zero.\n");
+                return;
+            }
+
+            /*
+               Process the renewal payment using payment.c.
+               If payment fails, do not replace the membership file.
+            */
+
+            if (!processMembershipPayment(m.memberId, m.fee)) {
+                fclose(fp);
+                fclose(temp);
+                remove(TEMP_FILE);
+                printf("Renewal cancelled because payment failed.\n");
+                return;
+            }
+
+            paymentSucceeded = 1;
+            strcpy(m.status, "ACTIVE");
+        }
+
+        writeMembership(temp, &m);
+    }
+
+    fclose(fp);
+
+    if (fclose(temp) != 0) {
+        remove(TEMP_FILE);
+
+        if (paymentSucceeded) {
+            printf("Warning: Payment succeeded, but the temporary membership file could not be closed.\n");
+        }
+
+        return;
+    }
+
+    if (!found) {
+        remove(TEMP_FILE);
+        printf("Membership not found!\n");
+        return;
+    }
+
+    if (!replaceMembershipFile()) {
+        if (paymentSucceeded) {
+            printf("Warning: Payment was recorded, but membership renewal was not saved.\n");
+        }
+
+        return;
+    }
+
+    printf("Membership renewed successfully!\n");
+}
+
+/* ---------------------------------------------------------
+   VIEW EXPIRED MEMBERSHIPS
+   Displays records whose status is EXPIRED.
+   --------------------------------------------------------- */
+
+void viewExpiredMemberships(void)
+{
+    FILE *fp;
+    Membership m;
+    int found = 0;
+
+    clearScreen();
+    printf("\n========== EXPIRED MEMBERSHIPS ==========\n");
+
+    fp = fopen(MEMBERSHIP_FILE, "r");
+
+    if (fp == NULL) {
+        printf("No membership records found.\n");
+        return;
+    }
+
+    while (readMembership(fp, &m)) {
+        if (strcmp(m.status, "EXPIRED") == 0) {
+            printf("\nMembership ID : %s\n", m.membershipId);
+            printf("Member ID     : %s\n", m.memberId);
+            printf("Plan          : %s\n", m.planName);
+            printf("End Date      : %s\n", m.endDate);
+            printf("----------------------------------------\n");
+
+            found = 1;
+        }
+    }
+
+    fclose(fp);
+
+    if (!found) {
+        printf("No expired memberships found.\n");
+    }
+}
+
+/* ---------------------------------------------------------
+   CANCEL MEMBERSHIP
+   --------------------------------------------------------- */
+
+void cancelMembership(void)
+{
+    char membershipId[20];
+    Membership m;
+    FILE *fp;
+    FILE *temp;
+    int found = 0;
+    int alreadyCancelled = 0;
+
+    clearScreen();
+    printf("\n========== CANCEL MEMBERSHIP ==========\n");
+    printf("Enter Membership ID: ");
+
+    if (scanf("%19s", membershipId) != 1) {
+        clearInputBuffer();
+        printf("Invalid membership ID.\n");
+        return;
+    }
+
+    fp = fopen(MEMBERSHIP_FILE, "r");
+
+    if (fp == NULL) {
+        printf("Unable to open membership file!\n");
+        return;
+    }
+
+    temp = fopen(TEMP_FILE, "w");
+
+    if (temp == NULL) {
+        fclose(fp);
+        printf("Unable to create temporary file!\n");
+        return;
+    }
+
+    while (readMembership(fp, &m)) {
+        if (strcmp(m.membershipId, membershipId) == 0) {
+            found = 1;
+
+            if (strcmp(m.status, "CANCELLED") == 0) {
+                alreadyCancelled = 1;
             } else {
-                printf("New start date (YYYY-MM-DD): ");
-                if (scanf("%10s", m.startDate) != 1) error = 1;
-
-                if (!error) {
-                    printf("New end date (YYYY-MM-DD): ");
-                    if (scanf("%10s", m.endDate) != 1) error = 1;
-                }
-
-                if (!error && strcmp(m.startDate, m.endDate) >= 0) {
-                    printf("End date must be after start date.\n");
-                    error = 1;
-                }
-
-                if (!error) {
-                    printf("New fee: ");
-                    if (scanf("%f", &m.fee) != 1 || m.fee <= 0)
-                        error = 1;
-                }
-
-                if (!error) strcpy(m.status, "ACTIVE");
+                strcpy(m.status, "CANCELLED");
             }
         }
 
-        if (!writeMembership(&m, temp)) error = 1;
+        writeMembership(temp, &m);
     }
 
-    fclose(file);
-    if (fclose(temp) != 0) error = 1;
+    fclose(fp);
 
-    if (!found || error) {
-        printf(!found ? "Membership not found.\n" : "Renewal failed.\n");
+    if (fclose(temp) != 0) {
         remove(TEMP_FILE);
+        printf("Unable to finish writing temporary membership file.\n");
         return;
     }
 
-    if (remove(MEMBERSHIP_FILE) != 0) {
-        printf("Could not update membership file.\n");
-        clearScreen2s();
+    if (!found) {
         remove(TEMP_FILE);
+        printf("Membership not found!\n");
         return;
     }
 
-    if (rename(TEMP_FILE, MEMBERSHIP_FILE) != 0) {
-        printf("Could not save renewed membership.\n");
-        clearScreen2s();
+    if (alreadyCancelled) {
+        remove(TEMP_FILE);
+        printf("Membership is already cancelled.\n");
         return;
     }
 
-    printf("Membership renewed successfully.\n");
+    if (!replaceMembershipFile()) {
+        return;
+    }
+
+    printf("Membership cancelled successfully!\n");
 }
 
-/* Display expired memberships */
-void viewExpiredMemberships(void)
-{
-    Membership m;
-    char today[11];
+/* ---------------------------------------------------------
+   RECORD A STANDALONE PAYMENT
+   Delegate to the payment module.
+   --------------------------------------------------------- */
 
-    time_t now = time(NULL);
-    struct tm *current = localtime(&now);
-
-    if (current == NULL) {
-        printf("Cannot get today's date.\n");
-        clearScreen2s();
-        return;
-    }
-
-    strftime(today, sizeof(today), "%Y-%m-%d", current);
-
-    FILE *file = fopen(MEMBERSHIP_FILE, "r");
-    if (file == NULL) {
-        printf("No memberships found.\n");
-        return;
-    }
-
-    int count = 0;
-    printf("\n===== EXPIRED MEMBERSHIPS =====\n");
-
-    while (readMembership(&m, file)) {
-        if (strcmp(m.status, "ACTIVE") == 0 &&
-            strcmp(m.endDate, today) < 0) {
-            printf("Membership: %s | Member: %s | Ended: %s\n",
-                   m.membershipId, m.memberId, m.endDate);
-            count++;
-        }
-    }
-
-    if (count == 0)
-        printf("No expired memberships found.\n");
-
-    fclose(file);
-}
-
-/* Cancel a membership */
-void cancelMembership(void)
-{
-    Membership m;
-    char id[10];
-    int found = 0, error = 0;
-
-    printf("Membership ID to cancel: ");
-    if (scanf("%9s", id) != 1) return;
-
-    FILE *file = fopen(MEMBERSHIP_FILE, "r");
-    if (file == NULL) {
-        printf("No memberships found.\n");
-        return;
-    }
-
-    FILE *temp = fopen(TEMP_FILE, "w");
-    if (temp == NULL) {
-        fclose(file);
-        printf("Cannot create temporary file.\n");
-        return;
-    }
-
-    while (readMembership(&m, file)) {
-        if (strcmp(m.membershipId, id) == 0) {
-            found = 1;
-            strcpy(m.status, "CANCELLED");
-        }
-
-        if (!writeMembership(&m, temp)) error = 1;
-    }
-
-    fclose(file);
-    if (fclose(temp) != 0) error = 1;
-
-    if (!found || error) {
-        printf(!found ? "Membership not found.\n" : "Cancellation failed.\n");
-        remove(TEMP_FILE);
-        return;
-    }
-
-    if (remove(MEMBERSHIP_FILE) != 0) {
-        printf("Could not update membership file.\n");
-        remove(TEMP_FILE);
-        return;
-    }
-
-    if (rename(TEMP_FILE, MEMBERSHIP_FILE) != 0) {
-        printf("Could not save cancellation.\n");
-        return;
-    }
-
-    printf("Membership cancelled successfully.\n");
-}
-
-/* Record a payment later */
 void recordPayment(void)
-{
-    Payment p;
-    char name[50];
-
-    printf("Payment ID: ");
-    if (scanf("%9s", p.paymentId) != 1) return;
-
-    printf("Member ID: ");
-    if (scanf("%9s", p.memberId) != 1) return;
-
-    printf("Member name: ");
-    if (scanf("%49s", name) != 1) return;
-
-    if (!checkMember(p.memberId, name)) {
-        printf("Member ID and name do not match.\n");
-        return;
-    }
-
-    printf("Amount: ");
-    if (scanf("%f", &p.amount) != 1 || p.amount <= 0) {
-        printf("Amount must be greater than zero.\n");
-        return;
-    }
-
-    printf("Payment date (YYYY-MM-DD): ");
-    if (scanf("%10s", p.paymentDate) != 1) return;
-
-    printf("Payment method (Cash/Card/Transfer): ");
-    if (scanf("%19s", p.method) != 1) return;
-
-    if (savePayment(&p))
-        printf("Payment saved successfully.\n");
+{   clearScreen();
+    paymentRecord();
 }
 
-/* Display all payments */
+/* ---------------------------------------------------------
+   VIEW PAYMENT HISTORY
+   Delegate to the payment module.
+   --------------------------------------------------------- */
+
 void viewPayments(void)
-{
-    Payment p;
-    FILE *file = fopen(PAYMENT_FILE, "r");
-
-    if (file == NULL) {
-        printf("No payments found.\n");
-        return;
-    }
-
-    printf("\n===== PAYMENT HISTORY =====\n");
-
-    while (fscanf(file, "%9s %9s %f %10s %19s",
-                  p.paymentId, p.memberId, &p.amount,
-                  p.paymentDate, p.method) == 5) {
-        printf("%s | Member: %s | %.2f | %s | %s\n",
-               p.paymentId, p.memberId, p.amount,
-               p.paymentDate, p.method);
-    }
-
-    fclose(file);
+{   clearScreen();
+    viewPaymentHistory();
 }
 
-/* Main membership menu */
+/* ---------------------------------------------------------
+   MEMBERSHIP MANAGEMENT MENU
+   --------------------------------------------------------- */
+
 void membershipMenu(void)
 {
     int choice;
 
     do {
-        printf("\n===== MEMBERSHIP & PAYMENTS =====\n");
-        printf("1. Assign Membership\n");
-        printf("2. View Memberships\n");
-        printf("3. Record Payment\n");
-        printf("4. View Payments\n");
-        printf("5. Renew Membership\n");
-        printf("6. View Expired Memberships\n");
-        printf("7. Cancel Membership\n");
-        printf("8. Return to Dashboard\n");
+         clearScreen();
+        printLogoWithoutl();
+
+        printf("║   [1]  Assign Membership                                                       ║\n");
+        printf("║   [2]  View Memberships                                                        ║\n");
+        printf("║   [3]  Renew Membership                                                        ║\n");
+        printf("║   [4]  View Expired Memberships                                                ║\n");
+        printf("║   [5]  Cancel Membership                                                       ║\n");
+        printf("║   [6]  Record Payment                                                          ║\n");
+        printf("║   [7]  View Payments                                                           ║\n");
+        printf("║   [8]  Return to Dashboard                                                     ║\n");
+        printf("╚════════════════════════════════════════════════════════════════════════════════╝\n");
         printf("Enter choice: ");
 
-        if (scanf("%d", &choice) != 1) {
-            int c;
-            while ((c = getchar()) != '\n' && c != EOF) {}
-            printf("Please enter a number.\n");
-            continue;
-        }
+        choice = readChoice();
 
         switch (choice) {
-            case 1: assignMembership(); break;
-            case 2: viewMemberships(); break;
-            case 3: recordPayment(); break;
-            case 4: viewPayments(); break;
-            case 5: renewMembership(); break;
-            case 6: viewExpiredMemberships(); break;
-            case 7: cancelMembership(); break;
-            case 8: printf("Returning to dashboard...\n"); break;
-            default: printf("Invalid choice.\n");
+            case 1:
+                assignMembership();
+                break;
+
+            case 2:
+                viewMemberships();
+                break;
+
+            case 3:
+                renewMembership();
+                break;
+
+            case 4:
+                viewExpiredMemberships();
+                break;
+
+            case 5:
+                cancelMembership();
+                break;
+
+            case 6:
+                recordPayment();
+                break;
+
+            case 7:
+                viewPayments();
+                break;
+
+            case 8:
+                return;
+                break;
+
+            case 0:
+                printf("Returning to main menu...\n");
+                break;
+
+            default:
+                printf("Invalid choice! Please try again.\n");
+                break;
         }
 
-    } while (choice != 8);
+        if (choice != 0) {
+            pauseScreen();
+        }
+
+    } while (choice != 0);
 }

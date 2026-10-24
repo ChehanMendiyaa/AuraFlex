@@ -1,7 +1,9 @@
+
 #include <stdio.h>
 #include <string.h>
 #include "auth.h"
-#include <system.h>
+#include "system.h"
+#include "ui.h"
 
 #define USERS_FILE "data/users.txt"
 #define MAX_ATTEMPTS 3
@@ -14,31 +16,49 @@ int login(User *loggedUser)
     if (loggedUser == NULL) {
         return 0;
     }
-    clearScreen();
 
     for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
 
-        printf("\n========================================\n");
-        printf("          GYM MANAGEMENT SYSTEM\n");
-        printf("                  LOGIN\n");
-        printf("========================================\n");
+        clearScreen();
+        //printLogo();
 
-        printf("Username: ");
+        printf("\n");
+        printf("  ╔══════════════════════════════════════════════════════════╗\n");
+        printf("  ║                                                          ║\n");
+        printf("  ║                      USER LOGIN                          ║\n");
+        printf("  ║                                                          ║\n");
+        printf("  ╠══════════════════════════════════════════════════════════╣\n");
+        printf("  ║                                                          ║\n");
+        printf("  ║  Enter your credentials to access AuraFlex.              ║\n");
+        printf("  ║                                                          ║\n");
+        printf("  ║  Username:                                               ║\n");
+        printf("  ║  > ");
 
         if (scanf("%29s", username) != 1) {
             return 0;
         }
 
-        printf("Password: ");
+        printf("  ║                                                          ║\n");
+        printf("  ║  Password:                                               ║\n");
+        printf("  ║  > ");
 
         if (scanf("%49s", password) != 1) {
             return 0;
         }
 
+        //printf("\n");
+        printf("  ║                                                          ║\n");
+        printf("  ╚══════════════════════════════════════════════════════════╝\n");
+
         FILE *file = fopen(USERS_FILE, "r");
 
         if (file == NULL) {
-            printf("\nError: Cannot open %s\n", USERS_FILE);
+            printf("\n");
+            printf("  ╔══════════════════════════════════════════════════════════╗\n");
+            printf("  ║  ERROR: Cannot open users file.                          ║\n");
+            printf("  ╚══════════════════════════════════════════════════════════╝\n");
+
+            clearScreen2s();
             return 0;
         }
 
@@ -65,23 +85,50 @@ int login(User *loggedUser)
         fclose(file);
 
         if (found) {
-            printf("\nLogin successful!\n");
-            printf("Welcome, %s!\n", loggedUser->userName);
-            printf("User ID: %s\n", loggedUser->userId);
-            printf("Role: %s\n", loggedUser->role);
+            printf("\n");
+            clearScreen();
+            printf("  ╔══════════════════════════════════════════════════════════╗\n");
+            printf("  ║                                                          ║\n");
+            printf("  ║                   LOGIN SUCCESSFUL                       ║\n");
+            printf("  ║                                                          ║\n");
+            printf("  ╠══════════════════════════════════════════════════════════╣\n");
+            printf("  ║  Welcome: %-46.46s ║\n", loggedUser->userName);
+            printf("  ║  User ID: %-46.46s ║\n", loggedUser->userId);
+            printf("  ║  Role:    %-46.46s ║\n", loggedUser->role);
+            printf("  ║                                                          ║\n");
+            printf("  ╚══════════════════════════════════════════════════════════╝\n");
 
+            clearScreen2s();
             return 1;
         }
-
-        printf("\nInvalid credentials or inactive account.\n");
+        clearScreen();
+        printf("\n");
+        printf("  ╔══════════════════════════════════════════════════════════╗\n");
+        printf("  ║                                                          ║\n");
+        printf("  ║                INVALID LOGIN CREDENTIALS                 ║\n");
+        printf("  ║                                                          ║\n");
+        printf("  ║  Attempts remaining: %-35d ║\n",
+               MAX_ATTEMPTS - attempt);
+        printf("  ╚══════════════════════════════════════════════════════════╝\n");
 
         if (attempt < MAX_ATTEMPTS) {
-            printf("Attempts remaining: %d\n",
-                   MAX_ATTEMPTS - attempt);
+            printf("\n   Press Enter to try again...");
+
+            /* Consume the newline left by scanf(). */
+            getchar();
+
+            /* Wait for the user to press Enter. */
+            getchar();
         }
     }
+    clearScreen();
+    printf("\n");
+    printf("  ╔══════════════════════════════════════════════════════════╗\n");
+    printf("  ║                                                          ║\n");
+    printf("  ║             MAXIMUM LOGIN ATTEMPTS REACHED               ║\n");
+    printf("  ║                                                          ║\n");
+    printf("  ╚══════════════════════════════════════════════════════════╝\n");
 
-    printf("\nMaximum login attempts reached.\n");
-
+    clearScreen2s();
     return 0;
 }
