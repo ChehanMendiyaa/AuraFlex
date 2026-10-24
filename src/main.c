@@ -9,7 +9,6 @@
 #include "ui.h"
 #include "attendance.h"
 #include "payment.h"
-#include "trainer.h"
 
 static void clearInputBuffer(void)
 {
