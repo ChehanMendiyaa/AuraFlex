@@ -80,9 +80,9 @@ int main(void)
             printf("║   [5] Attendance Management      ║                                             ║\n");
             printf("║   [6] Reports                    ║                                             ║\n");
             printf("║   [7] Logout                     ║                                             ║\n");
-            printf("╠══════════════════════════════════║═════════════════════════════════════════════╣\n");
+            printf("╠══════════════════════════════════╩═════════════════════════════════════════════╝\n");
             printf("║\n");
-            printf("║════ Enter your choice: ");
+            printf("╚════ Enter your choice: ");
         } else if (strcmp(loggedUser.role, "RECEPTIONIST") == 0) {
             printf("1. Register Member\n");
             printf("2. Manage Memberships\n");
