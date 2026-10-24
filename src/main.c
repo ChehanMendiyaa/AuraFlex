@@ -189,8 +189,8 @@ int main(void)
             }
         }
 
-        printf("\nThis feature has not been implemented yet.\n");
-        printf("--------------------------------------------\n");
+        // printf("\nThis feature has not been implemented yet.\n");
+
 
         pauseScreen();
     }
