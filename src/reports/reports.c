@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-
-=======
->>>>>>> f1b2bb3baa59b2a866c39e02391ea21c86080d27
 #include <stdio.h>
 #include <string.h>
 #include <time.h>

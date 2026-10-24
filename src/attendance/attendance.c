@@ -373,9 +373,12 @@ void viewAttendanceHistory(void)
 
     clearScreen();
 
-    printf("\n--- Attendance History ---\n");
-    printf("ID       Member    Date         Check-In  Check-Out\n");
-    printf("---------------------------------------------------\n");
+    printf("╔═════════════════════════════════════════════════════════════════╗\n");
+    printf("║                       Attendance History                        ║\n");
+    printf("║                                                                 ║\n");
+    printf("╠════════════╦══════════╦══════════════╦══════════════╦═══════════╣\n");
+    printf("║   ID       ║ MEMBER   ║     Date     ║   Check-In   ║Check-Out  ║\n");
+    printf("╠════════════╬══════════╬══════════════╬══════════════╬═══════════╣\n");
 
     file = fopen(ATTENDANCE_FILE, "r");
 
@@ -386,7 +389,7 @@ void viewAttendanceHistory(void)
     }
 
     while (readAttendance(file, &record)) {
-        printf("%-8s %-9s %-11s %-9s %-9s\n",
+        printf("║ %-10.10s ║ %-8.8s ║ %-12.12s ║ %-12.12s ║  %-8.8s ║\n",
                record.attendanceId,
                record.memberId,
                record.date,
@@ -395,7 +398,7 @@ void viewAttendanceHistory(void)
 
         found = 1;
     }
-
+    printf("╚════════════╩══════════╩══════════════╩══════════════╩═══════════╝\n");
     fclose(file);
 
     if (!found) {
