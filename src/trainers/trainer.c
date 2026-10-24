@@ -5,6 +5,7 @@
 
 #include "trainer.h"
 #include "ui.h"
+#include "system.h"
 
 #define TRAINERS_FILE "data/trainers.txt"
 #define TEMP_FILE "data/trainers_temp.txt"
@@ -154,12 +155,20 @@ static int findTrainer(const char *trainerId, Trainer *result)
 }
 
 static void displayTrainer(const Trainer *trainer)
-{
-    printf("\nTrainer ID     : %s\n", trainer->trainerId);
-    printf("Full Name      : %s\n", trainer->fullName);
-    printf("Phone          : %s\n", trainer->phone);
-    printf("Specialization : %s\n", trainer->specialization);
-    printf("Status         : %s\n", trainer->status);
+{   
+    // printf("\nTrainer ID     : %s\n", trainer->trainerId);
+    // printf("Full Name      : %s\n", trainer->fullName);
+    // printf("Phone          : %s\n", trainer->phone);
+    // printf("Specialization : %s\n", trainer->specialization);
+    // printf("Status         : %s\n", trainer->status);
+
+     printf("║ %-10.10s ║ %-16.16s ║ %-12.12s ║ %-12.12s ║ %-8.8s ║\n",
+               trainer->trainerId,
+               trainer->fullName,
+               trainer->phone,
+               trainer->specialization,
+               trainer->status);
+
 }
 
 static int validSingleWord(const char *value)
@@ -274,7 +283,7 @@ void registerTrainer(void)
 {
     Trainer trainer;
     FILE *file;
-
+    clearScreen();
     printf("\n========== REGISTER TRAINER ==========\n");
 
     readLine("Enter trainer ID: ",
@@ -322,8 +331,17 @@ void viewTrainers(void)
     FILE *file;
     Trainer trainer;
     int count = 0;
+    
+    clearScreen();
+    // printf("\n=============== ALL TRAINERS ===============\n");
+    printf("╔════════════════════════════════════════════════════════════════════════╗\n");
+    printf("║                             ALL TRAINERS                               ║\n");
+    printf("║                                                                        ║\n");
+    printf("╠════════════╦══════════════════╦══════════════╦══════════════╦══════════╣\n");
+    printf("║ Trainer ID ║     Full Name    ║   Phone      ║Specialization║  Status  ║\n");
+    printf("╠════════════╬══════════════════╬══════════════╬══════════════╬══════════╣\n");
 
-    printf("\n=============== ALL TRAINERS ===============\n");
+
 
     file = fopen(TRAINERS_FILE, "r");
 
@@ -334,9 +352,9 @@ void viewTrainers(void)
 
     while (readTrainer(file, &trainer)) {
         displayTrainer(&trainer);
-        printf("--------------------------------------------\n");
         count++;
     }
+    printf("╚════════════╩══════════════════╩══════════════╩══════════════╩══════════╝\n");
 
     fclose(file);
 
@@ -354,6 +372,7 @@ void searchTrainer(void)
     char trainerId[10];
     Trainer trainer;
 
+    clearScreen();
     printf("\n=============== SEARCH TRAINER ===============\n");
 
     readLine("Enter trainer ID: ", trainerId, sizeof(trainerId));
@@ -376,6 +395,7 @@ void updateTrainer(void)
     int found = 0;
     int failed = 0;
 
+    clearScreen();
     printf("\n=============== UPDATE TRAINER ===============\n");
 
     readLine("Enter trainer ID to update: ",
@@ -462,6 +482,7 @@ void changeTrainerStatus(void)
     char choice[10];
     int found = 0;
 
+    clearScreen();
     printf("\n========== CHANGE TRAINER STATUS ==========\n");
 
     readLine("Enter trainer ID: ", trainerId, sizeof(trainerId));
@@ -544,6 +565,7 @@ void assignMemberToTrainer(void)
     Trainer trainer;
     FILE *file;
 
+    clearScreen();
     printf("\n========== ASSIGN MEMBER TO TRAINER ==========\n");
 
     readLine("Enter trainer ID: ", trainerId, sizeof(trainerId));
@@ -600,6 +622,7 @@ void removeMemberFromTrainer(void)
     char storedMemberId[20];
     int found = 0;
 
+    clearScreen();
     printf("\n========== REMOVE MEMBER FROM TRAINER ==========\n");
 
     readLine("Enter trainer ID: ", trainerId, sizeof(trainerId));
@@ -664,6 +687,7 @@ void viewTrainerMembers(void)
     char memberId[20];
     int count = 0;
 
+    clearScreen();
     printf("\n========== VIEW TRAINER'S MEMBERS ==========\n");
 
     readLine("Enter trainer ID: ", trainerId, sizeof(trainerId));
@@ -704,24 +728,23 @@ void viewTrainerMembers(void)
 void trainerMenu(void)
 {
     int choice;
-
     ensureDataDirectory();
 
     do {
-        printf("\n");
-        printf("============================================\n");
-        printf("             TRAINER MANAGEMENT             \n");
-        printf("============================================\n");
-        printf("1. Register Trainer\n");
-        printf("2. View All Trainers\n");
-        printf("3. Search Trainer\n");
-        printf("4. Update Trainer Details\n");
-        printf("5. Activate/Deactivate Trainer\n");
-        printf("6. Assign Member to Trainer\n");
-        printf("7. Remove Member from Trainer\n");
-        printf("8. View a Trainer's Members\n");
-        printf("9. Return to Main Menu\n");
-        printf("============================================\n");
+        clearScreen();
+        printLogoWithoutl();
+
+        printf("║   [1]  Register Trainer                                                        ║\n");
+        printf("║   [2]  View All Trainers                                                       ║\n");
+        printf("║   [3]  Search Trainer                                                          ║\n");
+        printf("║   [4]  Update Trainer Details                                                  ║\n");
+        printf("║   [5]  Activate/Deactivate Trainer                                             ║\n");
+        printf("║   [6]  Assign Member to Trainer                                                ║\n");
+        printf("║   [7]  Remove Member from Trainer                                              ║\n");
+        printf("║   [8]  View a Trainer's Members                                                ║\n");
+        printf("║   [9]  Return to Main Menu                                                     ║\n");
+        printf("╚════════════════════════════════════════════════════════════════════════════════╝\n");
+        printf("Enter choice: ");
 
         choice = readMenuChoice();
 
