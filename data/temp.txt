@@ -51,3 +51,14 @@ printf("╚═══════════════════╩═══
 ║     001           ║   001           ║   3000.00       ║  2006-10-18      ║ Cash       ║
 ║     P001          ║   M001          ║   3000.00       ║  2026-10-21      ║ CASH       ║
 ╚═══════════════════╩═════════════════╩═════════════════╩══════════════════╩════════════╝
+
+ printLogoWithoutl();
+
+printf("║   [1]  Record Check-In                                                         ║\n");
+printf("║   [2]  Record Check-Out                                                        ║\n");
+printf("║   [3]  Search Attendance by Member ID                                          ║\n");
+printf("║   [4]  View Attendance History                                                 ║\n");
+printf("║   [5]  Daily Attendance Summary                                                ║\n");
+printf("║   [6]  Return to Dashboard                                                     ║\n");
+printf("╚════════════════════════════════════════════════════════════════════════════════╝\n");
+printf("Enter choice: ");

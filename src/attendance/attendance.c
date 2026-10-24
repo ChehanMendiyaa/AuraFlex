@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -5,9 +6,11 @@
 
 #include "attendance.h"
 #include "system.h"
+#include "ui.h"
 
 #define ATTENDANCE_FILE "data/attendance.txt"
 #define MEMBERS_FILE "data/members.txt"
+#define TEMP_FILE "data/attendance_temp.txt"
 
 typedef struct {
     char attendanceId[20];
@@ -17,8 +20,24 @@ typedef struct {
     char checkOut[10];
 } Attendance;
 
+/* Wait for Enter, handling the newline left by scanf */
+static void pressEnterToContinue(void)
+{
+    int ch;
+
+    /* Clear any remaining characters from the previous input */
+    while ((ch = getchar()) != '\n' && ch != EOF) {
+    }
+
+    printf("\nPress Enter to return to the previous menu...");
+
+    /* Wait for the user to press Enter */
+    while ((ch = getchar()) != '\n' && ch != EOF) {
+    }
+}
+
 /* Get today's date in YYYY-MM-DD format */
-void getToday(char date[])
+static void getToday(char date[])
 {
     time_t now = time(NULL);
     struct tm *current = localtime(&now);
@@ -32,7 +51,7 @@ void getToday(char date[])
 }
 
 /* Get current time in HH:MM format */
-void getCurrentTime(char timeText[])
+static void getCurrentTime(char timeText[])
 {
     time_t now = time(NULL);
     struct tm *current = localtime(&now);
@@ -45,8 +64,8 @@ void getCurrentTime(char timeText[])
     strftime(timeText, 10, "%H:%M", current);
 }
 
-/* Check whether a member ID exists */
-int memberExists(const char memberId[])
+/* Check whether a member exists and is active */
+static int memberExists(const char *memberId)
 {
     FILE *file = fopen(MEMBERS_FILE, "r");
     char id[10], name[50], phone[20], email[60], status[15];
@@ -60,11 +79,7 @@ int memberExists(const char memberId[])
                   id, name, phone, email, status) == 5) {
         if (strcmp(id, memberId) == 0) {
             fclose(file);
-
-            if (strcmp(status, "ACTIVE") == 0)
-                return 1;
-
-            return 0;
+            return strcmp(status, "ACTIVE") == 0 ? 1 : 0;
         }
     }
 
@@ -73,7 +88,7 @@ int memberExists(const char memberId[])
 }
 
 /* Read one attendance record */
-int readAttendance(FILE *file, Attendance *record)
+static int readAttendance(FILE *file, Attendance *record)
 {
     return fscanf(file, "%19s %9s %10s %9s %9s",
                   record->attendanceId,
@@ -84,7 +99,7 @@ int readAttendance(FILE *file, Attendance *record)
 }
 
 /* Generate the next attendance ID */
-void generateAttendanceId(char id[])
+static void generateAttendanceId(char id[])
 {
     FILE *file = fopen(ATTENDANCE_FILE, "r");
     Attendance record;
@@ -94,8 +109,9 @@ void generateAttendanceId(char id[])
     if (file != NULL) {
         while (readAttendance(file, &record)) {
             if (sscanf(record.attendanceId, "A%d", &number) == 1) {
-                if (number > highest)
+                if (number > highest) {
                     highest = number;
+                }
             }
         }
 
@@ -105,15 +121,17 @@ void generateAttendanceId(char id[])
     sprintf(id, "A%03d", highest + 1);
 }
 
-/* Check whether a member has already checked in today */
-int findTodayAttendance(const char memberId[], Attendance *found)
+/* Check whether a member is still checked in today */
+static int findTodayAttendance(const char *memberId,
+                               Attendance *found)
 {
     FILE *file = fopen(ATTENDANCE_FILE, "r");
     Attendance record;
     char today[11];
 
-    if (file == NULL)
+    if (file == NULL) {
         return 0;
+    }
 
     getToday(today);
 
@@ -121,6 +139,7 @@ int findTodayAttendance(const char memberId[], Attendance *found)
         if (strcmp(record.memberId, memberId) == 0 &&
             strcmp(record.date, today) == 0 &&
             strcmp(record.checkOut, "-") == 0) {
+
             *found = record;
             fclose(file);
             return 1;
@@ -139,16 +158,19 @@ void recordCheckIn(void)
     char memberId[10];
     int result;
 
+    clearScreen();
     printf("\n--- Member Check-In ---\n");
     printf("Enter Member ID: ");
 
-    if (scanf("%9s", memberId) != 1)
+    if (scanf("%9s", memberId) != 1) {
         return;
+    }
 
     result = memberExists(memberId);
 
-    if (result == -1)
+    if (result == -1) {
         return;
+    }
 
     if (result == 0) {
         printf("Member not found or member is not active.\n");
@@ -182,7 +204,7 @@ void recordCheckIn(void)
 
     fclose(file);
 
-    printf("Check-in recorded successfully!\n");
+    printf("\nCheck-in recorded successfully!\n");
     printf("Attendance ID: %s\n", record.attendanceId);
     printf("Date: %s\n", record.date);
     printf("Check-in Time: %s\n", record.checkIn);
@@ -194,19 +216,25 @@ void recordCheckOut(void)
     FILE *file, *temp;
     Attendance record;
     char memberId[10];
+    char today[11];
+    char currentTime[10];
     int found = 0;
     int result;
+    int writeError = 0;
 
+    clearScreen();
     printf("\n--- Member Check-Out ---\n");
     printf("Enter Member ID: ");
 
-    if (scanf("%9s", memberId) != 1)
+    if (scanf("%9s", memberId) != 1) {
         return;
+    }
 
     result = memberExists(memberId);
 
-    if (result == -1)
+    if (result == -1) {
         return;
+    }
 
     if (result == 0) {
         printf("Member not found or member is not active.\n");
@@ -220,7 +248,7 @@ void recordCheckOut(void)
         return;
     }
 
-    temp = fopen("data/attendance_temp.txt", "w");
+    temp = fopen(TEMP_FILE, "w");
 
     if (temp == NULL) {
         fclose(file);
@@ -228,77 +256,92 @@ void recordCheckOut(void)
         return;
     }
 
-    {
-        char today[11];
-        char currentTime[10];
+    getToday(today);
+    getCurrentTime(currentTime);
 
-        getToday(today);
-        getCurrentTime(currentTime);
+    while (readAttendance(file, &record)) {
+        if (!found &&
+            strcmp(record.memberId, memberId) == 0 &&
+            strcmp(record.date, today) == 0 &&
+            strcmp(record.checkOut, "-") == 0) {
 
-        while (readAttendance(file, &record)) {
-            if (!found &&
-                strcmp(record.memberId, memberId) == 0 &&
-                strcmp(record.date, today) == 0 &&
-                strcmp(record.checkOut, "-") == 0) {
-                strcpy(record.checkOut, currentTime);
-                found = 1;
-            }
+            strcpy(record.checkOut, currentTime);
+            found = 1;
+        }
 
-            fprintf(temp, "%s %s %s %s %s\n",
+        if (fprintf(temp, "%s %s %s %s %s\n",
                     record.attendanceId,
                     record.memberId,
                     record.date,
                     record.checkIn,
-                    record.checkOut);
+                    record.checkOut) < 0) {
+            writeError = 1;
+            break;
         }
     }
 
+    if (ferror(file)) {
+        writeError = 1;
+    }
+
     fclose(file);
-    fclose(temp);
 
-    if (!found) {
-        remove("data/attendance_temp.txt");
-        printf("No open check-in found for this member today.\n");
+    if (fclose(temp) != 0) {
+        writeError = 1;
+    }
+
+    if (writeError || !found) {
+        remove(TEMP_FILE);
+
+        if (writeError) {
+            printf("Error writing attendance records.\n");
+        } else {
+            printf("No open check-in found for this member today.\n");
+        }
+
         return;
     }
 
-    if (remove(ATTENDANCE_FILE) != 0) {
-        printf("Error replacing attendance file.\n");
-        remove("data/attendance_temp.txt");
+    /*
+       Replace the original file after the temporary file
+       has been written successfully.
+    */
+    if (rename(TEMP_FILE, ATTENDANCE_FILE) != 0) {
+        printf("Could not replace attendance file.\n");
+        printf("Your original attendance file has been kept.\n");
+        remove(TEMP_FILE);
         return;
     }
 
-    if (rename("data/attendance_temp.txt", ATTENDANCE_FILE) != 0) {
-        printf("Error saving updated attendance records.\n");
-        return;
-    }
-
-    printf("Check-out recorded successfully!\n");
+    printf("\nCheck-out recorded successfully!\n");
+    printf("Member ID: %s\n", memberId);
+    printf("Check-out Time: %s\n", currentTime);
 }
 
 /* Search attendance records by member ID */
 void searchAttendance(void)
 {
-    FILE *file = fopen(ATTENDANCE_FILE, "r");
+    FILE *file;
     Attendance record;
     char memberId[10];
     int found = 0;
 
+    clearScreen();
     printf("\n--- Search Attendance ---\n");
     printf("Enter Member ID: ");
 
     if (scanf("%9s", memberId) != 1) {
-        if (file != NULL)
-            fclose(file);
         return;
     }
+
+    file = fopen(ATTENDANCE_FILE, "r");
 
     if (file == NULL) {
         printf("No attendance records found.\n");
         return;
     }
 
-    printf("\nID       Member    Date        Check-In  Check-Out\n");
+    printf("\nID       Member    Date         Check-In  Check-Out\n");
     printf("---------------------------------------------------\n");
 
     while (readAttendance(file, &record)) {
@@ -309,29 +352,36 @@ void searchAttendance(void)
                    record.date,
                    record.checkIn,
                    record.checkOut);
+
             found = 1;
         }
     }
 
     fclose(file);
 
-    if (!found)
+    if (!found) {
         printf("No records found for member %s.\n", memberId);
+    }
 }
 
 /* View all attendance records */
 void viewAttendanceHistory(void)
 {
-    FILE *file = fopen(ATTENDANCE_FILE, "r");
+    FILE *file;
     Attendance record;
     int found = 0;
 
+    clearScreen();
+
     printf("\n--- Attendance History ---\n");
-    printf("ID       Member    Date        Check-In  Check-Out\n");
+    printf("ID       Member    Date         Check-In  Check-Out\n");
     printf("---------------------------------------------------\n");
+
+    file = fopen(ATTENDANCE_FILE, "r");
 
     if (file == NULL) {
         printf("No attendance records found.\n");
+        pressEnterToContinue();
         return;
     }
 
@@ -342,32 +392,40 @@ void viewAttendanceHistory(void)
                record.date,
                record.checkIn,
                record.checkOut);
+
         found = 1;
     }
 
     fclose(file);
 
-    if (!found)
+    if (!found) {
         printf("Attendance file is empty.\n");
+    }
+
+    pressEnterToContinue();
 }
 
-/* Generate a summary for today's attendance */
+/* Display today's attendance summary */
 void dailyAttendanceSummary(void)
 {
-    FILE *file = fopen(ATTENDANCE_FILE, "r");
+    FILE *file;
     Attendance record;
     char today[11];
     int checkIns = 0;
     int checkedOut = 0;
     int stillInside = 0;
 
+    clearScreen();
     getToday(today);
 
     printf("\n--- Daily Attendance Summary ---\n");
-    printf("Date: %s\n", today);
+    printf("Date: %s\n\n", today);
+
+    file = fopen(ATTENDANCE_FILE, "r");
 
     if (file == NULL) {
         printf("No attendance records found.\n");
+        pressEnterToContinue();
         return;
     }
 
@@ -375,10 +433,11 @@ void dailyAttendanceSummary(void)
         if (strcmp(record.date, today) == 0) {
             checkIns++;
 
-            if (strcmp(record.checkOut, "-") == 0)
+            if (strcmp(record.checkOut, "-") == 0) {
                 stillInside++;
-            else
+            } else {
                 checkedOut++;
+            }
         }
     }
 
@@ -387,6 +446,8 @@ void dailyAttendanceSummary(void)
     printf("Total Check-Ins: %d\n", checkIns);
     printf("Checked Out: %d\n", checkedOut);
     printf("Currently Checked In: %d\n", stillInside);
+
+    pressEnterToContinue();
 }
 
 /* Attendance menu */
@@ -395,45 +456,57 @@ void attendanceMenu(void)
     int choice;
 
     do {
-        printf("\n====================================\n");
-        printf("       AURAFLEX ATTENDANCE\n");
-        printf("====================================\n");
-        printf("1. Record Check-In\n");
-        printf("2. Record Check-Out\n");
-        printf("3. Search Attendance by Member ID\n");
-        printf("4. View Attendance History\n");
-        printf("5. Daily Attendance Summary\n");
-        printf("6. Return to Main Menu\n");
-        printf("Enter your choice: ");
+        clearScreen();
+        printLogoWithoutl();
+
+        printf("║   [1]  Record Check-In                                                         ║\n");
+        printf("║   [2]  Record Check-Out                                                        ║\n");
+        printf("║   [3]  Search Attendance by Member ID                                          ║\n");
+        printf("║   [4]  View Attendance History                                                 ║\n");
+        printf("║   [5]  Daily Attendance Summary                                                ║\n");
+        printf("║   [6]  Return to Dashboard                                                     ║\n");
+        printf("╚════════════════════════════════════════════════════════════════════════════════╝\n");
+        printf("Enter choice: ");
 
         if (scanf("%d", &choice) != 1) {
             int ch;
+
             while ((ch = getchar()) != '\n' && ch != EOF) {
             }
-            choice = 0;
+
+            printf("Invalid input. Enter a number.\n");
+            pressEnterToContinue();
+            continue;
         }
 
         switch (choice) {
             case 1:
                 recordCheckIn();
                 break;
+
             case 2:
                 recordCheckOut();
                 break;
+
             case 3:
                 searchAttendance();
                 break;
+
             case 4:
                 viewAttendanceHistory();
                 break;
+
             case 5:
                 dailyAttendanceSummary();
                 break;
+
             case 6:
                 printf("Returning to main menu...\n");
                 break;
+
             default:
                 printf("Invalid choice. Please try again.\n");
+                pressEnterToContinue();
         }
 
     } while (choice != 6);
