@@ -6,6 +6,9 @@
 #include "trainer.h"
 #include "reports.h"
 #include "system.h"
+#include "ui.h"
+#include "attendance.h"
+#include "payment.h"
 
 static void clearInputBuffer(void)
 {
@@ -27,15 +30,17 @@ static void pauseScreen(void)
     }
 }
 
+
+
 int main(void)
 {
     User loggedUser;
     int choice;
     int logoutChoice;
-
-    printf("\n============================================\n");
-    printf("       GYM & FITNESS MANAGEMENT SYSTEM\n");
-    printf("============================================\n");
+    printLogo();
+    // printf("\n============================================\n");
+    // printf("       GYM & FITNESS MANAGEMENT SYSTEM\n");
+    // printf("============================================\n");
 
     /* Login */
     if (!login(&loggedUser)) {
@@ -65,13 +70,18 @@ int main(void)
         printf("--------------------------------------------\n");
 
         if (strcmp(loggedUser.role, "ADMIN") == 0) {
-            printf("1. Member Management\n");
-            printf("2. Membership Plans\n");
-            printf("3. Trainer Management\n");
-            printf("4. Payment Management\n");
-            printf("5. Attendance Management\n");
-            printf("6. Reports\n");
-            printf("7. Logout\n");
+            clearScreen();
+            printLogo();
+            printf("║   [1] Member Management          ║                                             ║\n");
+            printf("║   [2] Membership Plans           ║                                             ║\n");
+            printf("║   [3] Trainer Management         ║                                             ║\n");
+            printf("║   [4] Payment Management         ║                                             ║\n");
+            printf("║   [5] Attendance Management      ║                                             ║\n");
+            printf("║   [6] Reports                    ║                                             ║\n");
+            printf("║   [7] Logout                     ║                                             ║\n");
+            printf("╠══════════════════════════════════║═════════════════════════════════════════════╣\n");
+            printf("║\n");
+            printf("║════ Enter your choice: ");
         } else if (strcmp(loggedUser.role, "RECEPTIONIST") == 0) {
             printf("1. Register Member\n");
             printf("2. Manage Memberships\n");
@@ -88,7 +98,6 @@ int main(void)
             printf("6. Logout\n");
         }
 
-        printf("--------------------------------------------\n");
         printf("Enter your choice: ");
 
         if (scanf("%d", &choice) != 1) {
@@ -128,10 +137,10 @@ int main(void)
                  printf("Trainer Management\n"); 
                  break;
                 case 4:
-                 printf("Payment Management\n"); 
+                 paymentMenu(); 
                  break;
                 case 5:
-                 printf("Attendance Management\n"); 
+                 attendanceMenu(); 
                  break;
                 case 6:
                  reportsMenu(); 
@@ -151,7 +160,8 @@ int main(void)
                  printf("Record Payment\n"); 
                  break;
                 case 4:
-                 printf("Record Attendance\n"); 
+                    clearScreen();
+                 attendanceMenu(); 
                  break;
                 case 5:
                  printf("View Members\n"); 
@@ -179,8 +189,8 @@ int main(void)
             }
         }
 
-        printf("\nThis feature has not been implemented yet.\n");
-        printf("--------------------------------------------\n");
+        // printf("\nThis feature has not been implemented yet.\n");
+
 
         pauseScreen();
     }
