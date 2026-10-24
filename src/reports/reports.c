@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+#include "ui.h"
+#include "system.h"
 #include "reports.h"
 
 /* Data files */
@@ -9,7 +11,7 @@
 #define PAYMENT_FILE "data/payments.txt"
 
 /* Get today's date in YYYY-MM-DD format */
-static void getToday(char today[])
+static void getToday(char today[11])
 {
     time_t now = time(NULL);
     struct tm *currentDate = localtime(&now);
@@ -22,6 +24,28 @@ static void getToday(char today[])
     strftime(today, 11, "%Y-%m-%d", currentDate);
 }
 
+/* Wait until the user presses Enter */
+static void pressEnterToContinue(void)
+{
+    int ch;
+
+    printf("\nPress Enter to return to the reports menu...");
+
+    /*
+       Consume any characters remaining on the current input line,
+       then wait for a fresh Enter key.
+    */
+    while ((ch = getchar()) != '\n' && ch != EOF) {
+        /* Clear remaining input */
+    }
+
+    if (ch != EOF) {
+        while ((ch = getchar()) != '\n' && ch != EOF) {
+            /* Wait for Enter */
+        }
+    }
+}
+
 /* 1. Display all members */
 void memberReport(void)
 {
@@ -31,14 +55,17 @@ void memberReport(void)
     char email[60], status[15];
     int count = 0;
 
+    clearScreen();
+    printf("\n========== MEMBER REPORT ==========\n");
+
     if (file == NULL) {
-        printf("\nCannot open members.txt\n");
+        printf("Cannot open members.txt\n");
         return;
     }
 
-    printf("\n========== MEMBER REPORT ==========\n");
     printf("%-10s %-20s %-15s %-25s %-12s\n",
            "ID", "Name", "Phone", "Email", "Status");
+
     printf("--------------------------------------------------------------------------\n");
 
     while (fscanf(file, "%9s %49s %19s %59s %14s",
@@ -64,15 +91,18 @@ void membershipReport(void)
     float fee;
     int count = 0;
 
+    clearScreen();
+    printf("\n========== MEMBERSHIP REPORT ==========\n");
+
     if (file == NULL) {
-        printf("\nCannot open memberships.txt\n");
+        printf("Cannot open memberships.txt\n");
         return;
     }
 
-    printf("\n========== MEMBERSHIP REPORT ==========\n");
     printf("%-10s %-10s %-12s %-12s %-12s %-10s %-12s\n",
-           "Mem.ID", "MemberID", "Plan", "Start", "End",
-           "Fee", "Status");
+           "Mem.ID", "MemberID", "Plan", "Start",
+           "End", "Fee", "Status");
+
     printf("-------------------------------------------------------------------------------\n");
 
     while (fscanf(file, "%9s %9s %19s %10s %10s %f %14s",
@@ -100,17 +130,21 @@ void expiredMembershipReport(void)
     float fee;
     int count = 0;
 
+    clearScreen();
+    printf("\n========== EXPIRED MEMBERSHIP REPORT ==========\n");
+
     if (file == NULL) {
-        printf("\nCannot open memberships.txt\n");
+        printf("Cannot open memberships.txt\n");
         return;
     }
 
     getToday(today);
 
-    printf("\n========== EXPIRED MEMBERSHIP REPORT ==========\n");
     printf("Today's date: %s\n\n", today);
+
     printf("%-10s %-10s %-12s %-12s %-10s\n",
            "Mem.ID", "MemberID", "Plan", "End Date", "Fee");
+
     printf("---------------------------------------------------------------\n");
 
     while (fscanf(file, "%9s %9s %19s %10s %10s %f %14s",
@@ -146,15 +180,18 @@ void paymentReport(void)
     float amount, total = 0.0f;
     int count = 0;
 
+    clearScreen();
+    printf("\n========== PAYMENT REPORT ==========\n");
+
     if (file == NULL) {
-        printf("\nCannot open payments.txt\n");
+        printf("Cannot open payments.txt\n");
         return;
     }
 
-    printf("\n========== PAYMENT REPORT ==========\n");
     printf("%-12s %-12s %-12s %-15s %-12s\n",
            "Payment ID", "Member ID", "Amount",
            "Payment Date", "Method");
+
     printf("-----------------------------------------------------------------\n");
 
     while (fscanf(file, "%9s %9s %f %10s %19s",
@@ -263,24 +300,25 @@ void summaryReport(void)
     fclose(file);
 
     /* Display summary */
+    clearScreen();
     printf("\n========== AURAFLEX SUMMARY REPORT ==========\n");
     printf("Report date: %s\n\n", today);
 
     printf("MEMBERS\n");
-    printf("Total members:                  %d\n", totalMembers);
+    printf("Total members:                 %d\n", totalMembers);
 
     printf("\nMEMBERSHIPS\n");
-    printf("Total membership records:       %d\n", totalMemberships);
-    printf("Active and not expired:         %d\n", activeMemberships);
-    printf("Expired active memberships:     %d\n", expiredMemberships);
-    printf("Cancelled memberships:          %d\n", cancelledMemberships);
+    printf("Total membership records:      %d\n", totalMemberships);
+    printf("Active and not expired:        %d\n", activeMemberships);
+    printf("Expired active memberships:    %d\n", expiredMemberships);
+    printf("Cancelled memberships:         %d\n", cancelledMemberships);
 
     printf("\nPAYMENTS\n");
-    printf("Total payment records:          %d\n", totalPayments);
-    printf("Total recorded payment amount:  %.2f\n",
+    printf("Total payment records:         %d\n", totalPayments);
+    printf("Total recorded payment amount: %.2f\n",
            totalPaymentAmount);
 
-    printf("\n======================================\n");
+    printf("\n=============================================\n");
 }
 
 /* Main reports menu */
@@ -291,14 +329,17 @@ void reportsMenu(void)
     int ch;
 
     do {
-        printf("\n========== AURAFLEX REPORTS ==========\n");
-        printf("1. Member Report\n");
-        printf("2. Membership Report\n");
-        printf("3. Expired Membership Report\n");
-        printf("4. Payment Report\n");
-        printf("5. Summary Report\n");
-        printf("6. Return to Main Menu\n");
-        printf("Enter your choice: ");
+        clearScreen();
+        printLogoWithoutl();
+
+        printf("║   [1]  Member Report                                                           ║\n");
+        printf("║   [2]  Membership Report                                                       ║\n");
+        printf("║   [3]  Expired Membership Report                                               ║\n");
+        printf("║   [4]  Payment Report                                                          ║\n");
+        printf("║   [5]  Summary Report                                                          ║\n");
+        printf("║   [6]  Return to Main Menu                                                     ║\n");
+        printf("╚════════════════════════════════════════════════════════════════════════════════╝\n");
+        printf("Enter choice: ");
 
         result = scanf("%d", &choice);
 
@@ -312,25 +353,39 @@ void reportsMenu(void)
             continue;
         }
 
+        /*
+           Clear the remainder of the menu input line.
+           This allows pressEnterToContinue() to wait for a
+           new Enter key after the report has been displayed.
+        */
+        while ((ch = getchar()) != '\n' && ch != EOF) {
+            /* Clear remaining input */
+        }
+
         switch (choice) {
             case 1:
                 memberReport();
+                pressEnterToContinue();
                 break;
 
             case 2:
                 membershipReport();
+                pressEnterToContinue();
                 break;
 
             case 3:
                 expiredMembershipReport();
+                pressEnterToContinue();
                 break;
 
             case 4:
                 paymentReport();
+                pressEnterToContinue();
                 break;
 
             case 5:
                 summaryReport();
+                pressEnterToContinue();
                 break;
 
             case 6:
@@ -339,6 +394,7 @@ void reportsMenu(void)
 
             default:
                 printf("Invalid choice. Please select 1-6.\n");
+                pressEnterToContinue();
         }
 
     } while (choice != 6);
