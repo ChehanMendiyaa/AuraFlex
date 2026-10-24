@@ -38,16 +38,13 @@ int main(void)
     int choice;
     int logoutChoice;
     printLogo();
-    // printf("\n============================================\n");
-    // printf("       GYM & FITNESS MANAGEMENT SYSTEM\n");
-    // printf("============================================\n");
 
     /* Login */
     if (!login(&loggedUser)) {
         printf("\nAccess denied. Program terminated.\n");
         return 1;
     }
-
+    
     /* Determine the logout menu number */
     if (strcmp(loggedUser.role, "ADMIN") == 0) {
         logoutChoice = 7;
