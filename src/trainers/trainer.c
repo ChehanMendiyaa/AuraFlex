@@ -75,7 +75,7 @@ int trConfirm(char question[])
     return (tmp[0] == 'y' || tmp[0] == 'Y');
 }
 
-/* Phone: exactly 10 digits */
+// phone number should be 10
 int trIsPhone(char s[])
 {
     int i;
@@ -87,7 +87,7 @@ int trIsPhone(char s[])
     return 1;
 }
 
-/* Email: must have an @ and then a . somewhere after it */
+// Email need to have @ and then . 
 int trIsEmail(char s[])
 {
     int i, at = -1, dot = -1, len = strlen(s);
@@ -101,7 +101,7 @@ int trIsEmail(char s[])
     return (at > 0 && dot > at + 1 && dot < len - 1);
 }
 
-/* Time: HH:MM in 24 hour format */
+// time hh:mm (24hrs format)
 int trIsTime(char s[])
 {
     int hour, minute;
@@ -116,7 +116,7 @@ int trIsTime(char s[])
     return (hour < 24 && minute < 60);
 }
 
-/* "Mon" -> 0, "Tue" -> 1 ... Returns -1 if it is not a day */
+// Returns -1 if it is not a day 
 int trDayIndex(char s[])
 {
     int i;
@@ -126,7 +126,6 @@ int trDayIndex(char s[])
     return -1;
 }
 
-/* Is key found inside text? */
 int trContains(char text[], char key[])
 {
     int i, j, tl = strlen(text), kl = strlen(key);
@@ -141,11 +140,10 @@ int trContains(char text[], char key[])
     return 0;
 }
 
-/* ------------------------------------------------------------------ */
-/*  File handling                                                      */
-/* ------------------------------------------------------------------ */
+// file handling
 
-/* Reads all trainers from the file into trList. Returns how many. */
+// Reads all trainers from the file into trList and returns how many
+
 int trLoadTrainers(void)
 {
     FILE *fp;
@@ -153,7 +151,7 @@ int trLoadTrainers(void)
 
     fp = fopen(TRAINER_FILE, "r");
     if (fp == NULL)
-        return 0;                         /* no file yet = no trainers */
+        return 0;                         // no file = no trainers
 
     while (n < MAX_TRAINERS &&
            fscanf(fp, "%d %99s %14s %99s %29s %d", &trList[n].id, trList[n].name,
@@ -218,8 +216,9 @@ int trSaveAssignments(int n)
     return 1;
 }
 
-/* members.txt belongs to the Member module. Each line must START with the
-   member ID. We read that number and skip the rest of the line. */
+/* members.txt own by Member module so each line must start with the
+   member id. We read number and skip the other things of the line */
+
 int trMemberExists(int memberId)
 {
     FILE *fp;
@@ -242,11 +241,9 @@ int trMemberExists(int memberId)
     return found;
 }
 
-/* ------------------------------------------------------------------ */
-/*  Searching helpers                                                  */
-/* ------------------------------------------------------------------ */
+// searching helpers
 
-/* Position of the trainer with this ID in trList, or -1 */
+
 int trFindTrainer(int n, int id)
 {
     int i;
@@ -256,7 +253,8 @@ int trFindTrainer(int n, int id)
     return -1;
 }
 
-/* How many of the first an assignments belong to this trainer */
+// How many assignments belong to this trainer 
+
 int trCountFor(int an, int trainerId)
 {
     int i, count = 0;
@@ -266,8 +264,8 @@ int trCountFor(int an, int trainerId)
     return count;
 }
 
-/* Asks for a trainer ID and loads the trainers. Returns the position in
-   trList (or -1). The number of trainers is stored in *count. */
+// Asksing for trainer ID and loads the trainers
+
 int trPickTrainer(int *count)
 {
     int n, id, pos;
@@ -298,9 +296,7 @@ void trPrintTrainer(trainer *t, int memberCount)
     printf("  Members        : %d / %d\n", memberCount, MAX_TRAINER_MEMBERS);
 }
 
-/* ------------------------------------------------------------------ */
-/*  Functions for other modules                                        */
-/* ------------------------------------------------------------------ */
+//  Functions for other modules                                
 
 int trainerExists(int trainerId)
 {
@@ -323,9 +319,8 @@ int countTrainerMembers(int trainerId)
     return trCountFor(an, trainerId);
 }
 
-/* ------------------------------------------------------------------ */
-/*  Trainer records                                                    */
-/* ------------------------------------------------------------------ */
+
+// Trainer records                                                   
 
 void addTrainer(void)
 {
@@ -339,7 +334,7 @@ void addTrainer(void)
         return;
     }
 
-    t.id = 1;                             /* new ID = highest ID + 1 */
+    t.id = 1;                             // new ID = highest ID + 1 
     for (i = 0; i < n; i++)
         if (trList[i].id >= t.id)
             t.id = trList[i].id + 1;
@@ -367,7 +362,7 @@ void addTrainer(void)
                t.specialization, sizeof(t.specialization));
     t.experienceYears = trReadInt("Years of experience (0-60): ", 0, 60);
 
-    trList[n] = t;                        /* structure-to-structure assignment */
+    trList[n] = t;                       
     n++;
     if (trSaveTrainers(n))
         printf("  Trainer added successfully. ID = %d\n", t.id);
@@ -516,9 +511,7 @@ void deleteTrainer(void)
         printf("  Trainer deleted.\n");
 }
 
-/* ------------------------------------------------------------------ */
-/*  Assignments and schedule                                           */
-/* ------------------------------------------------------------------ */
+//  Assignments and schedule                           
 
 void assignTrainerToMember(void)
 {
@@ -563,28 +556,28 @@ void assignTrainerToMember(void)
         return;
     }
 
-    while (1) {                           /* day of the session */
+    while (1) {                           // day of the session 
         trReadWord("Session day (Mon Tue Wed Thu Fri Sat Sun): ", day, 10);
         if (trDayIndex(day) >= 0)
             break;
         printf("  Type the day exactly like Mon, Tue, Wed...\n");
     }
 
-    while (1) {                           /* time of the session */
+    while (1) {                           // time of the session
         trReadWord("Session time (HH:MM): ", tmp, 100);
         if (!trIsTime(tmp)) {
             printf("  Use HH:MM, e.g. 07:30\n");
             continue;
         }
         strcpy(time, tmp);
-        for (i = 0; i < an; i++) {        /* is this slot already taken? */
+        for (i = 0; i < an; i++) {        // is this slot already taken? 
             if (trAssign[i].trainerId == trainerId &&
                 strcmp(trAssign[i].sessionDay, day) == 0 &&
                 strcmp(trAssign[i].sessionTime, time) == 0)
                 break;
         }
         if (i == an)
-            break;                        /* slot is free */
+            break;                        // slot is free 
         printf("  This trainer already has a session on %s at %s.\n", day, time);
     }
 

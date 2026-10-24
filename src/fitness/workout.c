@@ -2,14 +2,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include "workout.h"
-#include "trainer.h"          /* getMemberTrainer() and trainerExists() */
-
+#include "trainer.h"         
 #define MAX_PLANS      100
 #define MAX_EXERCISES  500
 #define MEMBERS_FILE   "data/members.txt"
 #define PROGRESS_FILE  "data/progress.txt"
 #define GOALS_FILE     "data/goals.txt"
-#define SECONDS_PER_SET 45        /* estimated time to do one set */
+#define SECONDS_PER_SET 45   
 
 WorkoutPlan wkPlans[MAX_PLANS];
 Exercise    wkEx[MAX_EXERCISES];
@@ -18,7 +17,7 @@ int         wkExCount = 0;
 char        wkDays[7][4] = {"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"};
 char        wkGoals[3][20] = {"Muscle_Build", "Weight_Loss", "Weight_Gain"};
 
-/* ---------- helper prototypes ---------- */
+
 int   wkReadInt(char prompt[], int low, int high);
 float wkReadFloat(char prompt[], float low, float high);
 void  wkReadWord(char prompt[], char out[], int size);
@@ -39,9 +38,6 @@ int   wkCountExercises(int planId);
 void  wkShowMemberLines(char fileName[], int memberId);
 void  wkRemovePlanExercises(int planId);
 
-/* ------------------------------------------------------------------ */
-/*  Input and validation helpers                                       */
-/* ------------------------------------------------------------------ */
 
 int wkReadInt(char prompt[], int low, int high)
 {
@@ -76,7 +72,6 @@ float wkReadFloat(char prompt[], float low, float high)
     }
 }
 
-/* Reads one word (no spaces) that fits into out[size] */
 void wkReadWord(char prompt[], char out[], int size)
 {
     char tmp[100];
@@ -103,7 +98,7 @@ int wkConfirm(char question[])
     return (tmp[0] == 'y' || tmp[0] == 'Y');
 }
 
-/* Date written as YYYY-MM-DD */
+// Date write yyyy-mm-dd
 int wkIsDate(char s[])
 {
     int i, month, day;
@@ -165,11 +160,8 @@ void wkReadDate(char out[])
     strcpy(out, tmp);
 }
 
-/* ------------------------------------------------------------------ */
-/*  File handling                                                      */
-/* ------------------------------------------------------------------ */
+// file handling
 
-/* Reads both files into wkPlans and wkEx */
 void wkLoadAll(void)
 {
     FILE *fp;
@@ -194,10 +186,10 @@ void wkLoadAll(void)
     if (fp != NULL) {
         while (wkExCount < MAX_EXERCISES &&
                fscanf(fp, "%d %d %39s %d %d %f %d",
-                      &wkEx[wkExCount].exerciseId, &wkEx[wkExCount].planId,
-                      wkEx[wkExCount].name, &wkEx[wkExCount].sets,
-                      &wkEx[wkExCount].reps, &wkEx[wkExCount].weightKg,
-                      &wkEx[wkExCount].restSeconds) == 7) {
+                     &wkEx[wkExCount].exerciseId, &wkEx[wkExCount].planId,
+                     wkEx[wkExCount].name, &wkEx[wkExCount].sets,
+                     &wkEx[wkExCount].reps, &wkEx[wkExCount].weightKg,
+                     &wkEx[wkExCount].restSeconds) == 7) {
             wkEx[wkExCount].active = 1;
             wkExCount++;
         }
@@ -290,9 +282,7 @@ void wkShowMemberLines(char fileName[], int memberId)
         printf("  (no records for this member)\n");
 }
 
-/* ------------------------------------------------------------------ */
-/*  Searching helpers                                                  */
-/* ------------------------------------------------------------------ */
+// searching helps
 
 int wkFindPlan(int id)
 {
@@ -352,9 +342,7 @@ void wkRemovePlanExercises(int planId)
     wkExCount = k;
 }
 
-/* ------------------------------------------------------------------ */
-/*  Workout plans                                                      */
-/* ------------------------------------------------------------------ */
+// workout plan
 
 void createWorkoutPlan(void)
 {
@@ -488,9 +476,7 @@ void deleteWorkoutPlan(void)
     printf("  Plan deleted.\n");
 }
 
-/* ------------------------------------------------------------------ */
-/*  Exercises                                                          */
-/* ------------------------------------------------------------------ */
+// exercises
 
 void addExercise(void)
 {
@@ -514,7 +500,7 @@ void addExercise(void)
     e.planId = wkPlans[pos].planId;
     e.active = 1;
 
-    e.exerciseId = 1;                     /* new ID = highest ID + 1 */
+    e.exerciseId = 1;                 
     for (i = 0; i < wkExCount; i++)
         if (wkEx[i].exerciseId >= e.exerciseId)
             e.exerciseId = wkEx[i].exerciseId + 1;
@@ -614,7 +600,7 @@ void deleteExercise(void)
     printf("  Exercise deleted.\n");
 }
 
-/* Totals for one plan: sets, volume (sets x reps x kg) and estimated time */
+// totals for one plan - (sets x reps x kg) and time
 void showPlanSummary(void)
 {
     int pos, i, count = 0, totalSets = 0, totalSeconds = 0, heaviest = -1;
@@ -647,9 +633,7 @@ void showPlanSummary(void)
     printf("  Heaviest exercise  : %s (%.1f kg)\n", wkEx[heaviest].name, wkEx[heaviest].weightKg);
 }
 
-/* ------------------------------------------------------------------ */
-/*  Trainer view of a member's fitness data                            */
-/* ------------------------------------------------------------------ */
+// member fitness data                         
 
 void viewMemberFitnessProfile(void)
 {
@@ -687,10 +671,7 @@ void viewMemberFitnessProfile(void)
     wkShowMemberLines(GOALS_FILE, memberId);
 }
 
-/* ------------------------------------------------------------------ */
-/*  Menu                                                               */
-/* ------------------------------------------------------------------ */
-
+// menu
 void workoutMenu(void)
 {
     int choice;
@@ -711,16 +692,26 @@ void workoutMenu(void)
         choice = wkReadInt("Choice: ", 0, 10);
 
         switch (choice) {
-            case 1:  createWorkoutPlan();        break;
-            case 2:  viewWorkoutPlans();         break;
-            case 3:  updateWorkoutPlan();        break;
-            case 4:  deleteWorkoutPlan();        break;
-            case 5:  addExercise();              break;
-            case 6:  viewPlanExercises();        break;
-            case 7:  updateExercise();           break;
-            case 8:  deleteExercise();           break;
-            case 9:  showPlanSummary();          break;
-            case 10: viewMemberFitnessProfile(); break;
+            case 1:  createWorkoutPlan();        
+            break;
+            case 2:  viewWorkoutPlans();         
+            break;
+            case 3:  updateWorkoutPlan();        
+            break;
+            case 4:  deleteWorkoutPlan();        
+            break;
+            case 5:  addExercise();              
+            break;
+            case 6:  viewPlanExercises();        
+            break;
+            case 7:  updateExercise();           
+            break;
+            case 8:  deleteExercise();           
+            break;
+            case 9:  showPlanSummary();          
+            break;
+            case 10: viewMemberFitnessProfile(); 
+            break;
         }
     } while (choice != 0);
 }
