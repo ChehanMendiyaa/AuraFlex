@@ -80,19 +80,29 @@ int main(void)
             printf("║\n");
             printf("╚════ Enter your choice: ");
         } else if (strcmp(loggedUser.role, "RECEPTIONIST") == 0) {
-            printf("1. Register Member\n");
-            printf("2. Manage Memberships\n");
-            printf("3. Record Payment\n");
-            printf("4. Record Attendance\n");
-            printf("5. View Members\n");
-            printf("6. Logout\n");
+            clearScreen();
+            printLogo();
+            printf("║   [1] Register Member             ║                                             ║\n");
+            printf("║   [2] Manage Membership           ║                                             ║\n");
+            printf("║   [3] Record Payment              ║                                             ║\n");
+            printf("║   [4] Record Attendance           ║                                             ║\n");
+            printf("║   [5] View Members                ║                                             ║\n");
+            printf("║   [6] Logout                      ║                                             ║\n");
+            printf("╠═══════════════════════════════════╩═════════════════════════════════════════════╝\n");
+            printf("║\n");
+            printf("╚════ Enter your choice: ");
         } else {
-            printf("1. View Assigned Members\n");
-            printf("2. Manage Workout Plans\n");
-            printf("3. Manage Nutrition Plans\n");
-            printf("4. View Fitness Progress\n");
-            printf("5. Manage Goals\n");
-            printf("6. Logout\n");
+            clearScreen();
+            printLogo();
+            printf("║   [1] View Assigned Members       ║                                             ║\n");
+            printf("║   [2] Manage Workout Plans        ║                                             ║\n");
+            printf("║   [3] Manage Nutrition Plans      ║                                             ║\n");
+            printf("║   [4] View Fitness Progress       ║                                             ║\n");
+            printf("║   [5] Manage Goals                ║                                             ║\n");
+            printf("║   [6] Logout                      ║                                             ║\n");
+            printf("╠═══════════════════════════════════╩═════════════════════════════════════════════╝\n");
+            printf("║\n");
+            printf("╚════ Enter your choice: ");
         }
 
 
@@ -116,8 +126,6 @@ int main(void)
             printf("\nInvalid menu choice. Please try again.\n");
             continue;
         }
-
-        printf("\n--------------------------------------------\n");
 
         if (strcmp(loggedUser.role, "ADMIN") == 0) {
             switch (choice) {
@@ -149,45 +157,47 @@ int main(void)
                     memberMenu();
                     break;
                 case 2:
-                 clearScreen();
-                 membershipMenu(); 
+                    clearScreen();
+                    membershipMenu(); 
                  break;
                 case 3:
-                 printf("Record Payment\n"); 
+                 clearScreen();
+                 paymentRecord(); 
                  break;
                 case 4:
-                    clearScreen();
+                 clearScreen();
                  attendanceMenu(); 
                  break;
                 case 5:
-                 printf("View Members\n"); 
+                 clearScreen();
+                 viewMembers(); 
                  break;
+                 
             }
         } else {
 
-            switch (choice) {
-                
+            switch (choice)
+            {
                 case 1:
-                 printf("View Assigned Members\n"); 
-                 break;
+                    viewTrainerMembers();
+                    break;
+
                 case 2:
-                 printf("Manage Workout Plans\n"); 
-                 break;
+                    assignMemberToTrainer();
+                    break;
+
                 case 3:
-                 printf("Manage Nutrition Plans\n"); 
-                 break;
-                case 4:
-                 printf("View Fitness Progress\n"); 
-                 break;
-                case 5:
-                 printf("Manage Goals\n"); 
-                 break;
+                    removeMemberFromTrainer();
+                    break;
+
+                case 0:
+                    break;
+
+                default:
+                    printf("Invalid choice!\n");
+                    break;
             }
         }
-
-        // printf("\nThis feature has not been implemented yet.\n");
-
-
         pauseScreen();
     }
 

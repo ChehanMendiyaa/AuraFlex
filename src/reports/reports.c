@@ -278,13 +278,13 @@ void reportsMenu(void)
         clearScreen();
         printLogoWithoutl();
 
-        printf("║   [1]  Member Report                                                               ║\n");
-        printf("║   [2]  Membership Report                                                           ║\n");
-        printf("║   [3]  Expired Membership Report                                                   ║\n");
-        printf("║   [4]  Payment Report                                                              ║\n");
-        printf("║   [5]  Summary Report                                                              ║\n");
-        printf("║   [6]  Return to Main Menu                                                         ║\n");
-        printf("╚════════════════════════════════════════════════════════════════════════════════════╝\n");
+        printf("║   [1]  Member Report                                                           ║\n");
+        printf("║   [2]  Membership Report                                                       ║\n");
+        printf("║   [3]  Expired Membership Report                                               ║\n");
+        printf("║   [4]  Payment Report                                                          ║\n");
+        printf("║   [5]  Summary Report                                                          ║\n");
+        printf("║   [6]  Return to Main Menu                                                     ║\n");
+        printf("╚════════════════════════════════════════════════════════════════════════════════╝\n");
         printf("Enter choice: ");
 
         result = scanf("%d", &choice);
