@@ -24,7 +24,7 @@ static void pauseScreen(void)
 {
     printf("\nPress Enter to return to the dashboard...");
 
-    /* Wait for the user to press Enter */
+    // waiting for the user to press enter 
     int ch;
     while ((ch = getchar()) != '\n' && ch != EOF) {
         /* Discard input */
@@ -40,19 +40,20 @@ int main(void)
     int logoutChoice;
     printLogo();
 
-    /* Login */
+    //login
     if (!login(&loggedUser)) {
         printf("\nAccess denied. Program terminated.\n");
         return 1;
     }
 
-    /* Determine the logout menu number */
+    // logout menu number
     if (strcmp(loggedUser.role, "ADMIN") == 0) {
         logoutChoice = 7;
-    } else if (strcmp(loggedUser.role, "RECEPTIONIST") == 0 ||
-               strcmp(loggedUser.role, "TRAINER") == 0) {
+    } else if (strcmp(loggedUser.role, "RECEPTIONIST") == 0) {
         logoutChoice = 6;
-    } else {
+    } else if (strcmp(loggedUser.role, "TRAINER") == 0) {
+        logoutChoice = 4;
+    }else {
         printf("\nError: Invalid role configuration.\n");
         return 1;
     }
@@ -96,11 +97,9 @@ int main(void)
             clearScreen();
             printLogo();
             printf("║   [1] View Assigned Members      ║                                             ║\n");
-            printf("║   [2] Manage Workout Plans       ║                                             ║\n");
-            printf("║   [3] Manage Nutrition Plans     ║                                             ║\n");
-            printf("║   [4] View Fitness Progress      ║                                             ║\n");
-            printf("║   [5] Manage Goals               ║                                             ║\n");
-            printf("║   [6] Logout                     ║                                             ║\n");
+            printf("║   [2] Assign Member              ║                                             ║\n");
+            printf("║   [3] Remove Member              ║                                             ║\n");
+            printf("║   [4] Logout                     ║                                             ║\n");
             printf("╠══════════════════════════════════╩═════════════════════════════════════════════╝\n");
             printf("║\n");
             printf("╚════ Enter your choice: ");
@@ -180,18 +179,18 @@ int main(void)
             switch (choice)
             {
                 case 1:
+                    clearScreen();
                     viewTrainerMembers();
                     break;
 
                 case 2:
+                    clearScreen();
                     assignMemberToTrainer();
                     break;
 
                 case 3:
+                    clearScreen();
                     removeMemberFromTrainer();
-                    break;
-
-                case 0:
                     break;
 
                 default:
