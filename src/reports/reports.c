@@ -1,9 +1,12 @@
 #include <stdio.h>
 #include <string.h>
 #include <time.h>
+
 #include "ui.h"
 #include "system.h"
 #include "reports.h"
+#include "member.h"
+#include "membership.h"
 
 /* Data files */
 #define MEMBER_FILE "data/members.txt"
@@ -24,99 +27,17 @@ static void getToday(char today[11])
     strftime(today, 11, "%Y-%m-%d", currentDate);
 }
 
-/* Wait until the user presses Enter */
+/* Wait for the user to press Enter */
 static void pressEnterToContinue(void)
 {
     int ch;
 
     printf("\nPress Enter to return to the reports menu...");
+    fflush(stdout);
 
-    /*
-       Consume any characters remaining on the current input line,
-       then wait for a fresh Enter key.
-    */
     while ((ch = getchar()) != '\n' && ch != EOF) {
         /* Clear remaining input */
     }
-
-    if (ch != EOF) {
-        while ((ch = getchar()) != '\n' && ch != EOF) {
-            /* Wait for Enter */
-        }
-    }
-}
-
-/* 1. Display all members */
-void memberReport(void)
-{
-    FILE *file = fopen(MEMBER_FILE, "r");
-
-    char id[10], name[50], phone[20];
-    char email[60], status[15];
-    int count = 0;
-
-    clearScreen();
-    printf("\n========== MEMBER REPORT ==========\n");
-
-    if (file == NULL) {
-        printf("Cannot open members.txt\n");
-        return;
-    }
-
-    printf("%-10s %-20s %-15s %-25s %-12s\n",
-           "ID", "Name", "Phone", "Email", "Status");
-
-    printf("--------------------------------------------------------------------------\n");
-
-    while (fscanf(file, "%9s %49s %19s %59s %14s",
-                  id, name, phone, email, status) == 5) {
-        printf("%-10s %-20s %-15s %-25s %-12s\n",
-               id, name, phone, email, status);
-        count++;
-    }
-
-    printf("\nTotal members: %d\n", count);
-
-    fclose(file);
-}
-
-/* 2. Display all memberships */
-void membershipReport(void)
-{
-    FILE *file = fopen(MEMBERSHIP_FILE, "r");
-
-    char membershipId[10], memberId[10];
-    char plan[20], startDate[11], endDate[11];
-    char status[15];
-    float fee;
-    int count = 0;
-
-    clearScreen();
-    printf("\n========== MEMBERSHIP REPORT ==========\n");
-
-    if (file == NULL) {
-        printf("Cannot open memberships.txt\n");
-        return;
-    }
-
-    printf("%-10s %-10s %-12s %-12s %-12s %-10s %-12s\n",
-           "Mem.ID", "MemberID", "Plan", "Start",
-           "End", "Fee", "Status");
-
-    printf("-------------------------------------------------------------------------------\n");
-
-    while (fscanf(file, "%9s %9s %19s %10s %10s %f %14s",
-                  membershipId, memberId, plan, startDate,
-                  endDate, &fee, status) == 7) {
-        printf("%-10s %-10s %-12s %-12s %-12s %-10.2f %-12s\n",
-               membershipId, memberId, plan, startDate,
-               endDate, fee, status);
-        count++;
-    }
-
-    printf("\nTotal membership records: %d\n", count);
-
-    fclose(file);
 }
 
 /* 3. Display active memberships whose end dates have passed */
@@ -131,35 +52,39 @@ void expiredMembershipReport(void)
     int count = 0;
 
     clearScreen();
-    printf("\n========== EXPIRED MEMBERSHIP REPORT ==========\n");
 
     if (file == NULL) {
         printf("Cannot open memberships.txt\n");
         return;
     }
-
     getToday(today);
 
-    printf("Today's date: %s\n\n", today);
+    printf("╔════════════════════════════════════════════════════════════════════════════════════════════════╗\n");
+    printf("║                                 EXPIRED MEMBERSHIP REPORT                                      ║\n");
+    printf("║                                                              Today's date: %-10s          ║\n", today);
+    printf("╠════════════╦══════════════════╦══════════════╦══════════════════════════════════════╦══════════╣\n");
+    printf("║ MEMBER ID  ║ NAME             ║ PHONE        ║ EMAIL                                ║ STATUS   ║\n");
+    printf("╠════════════╬══════════════════╬══════════════╬══════════════════════════════════════╬══════════╣\n");
 
-    printf("%-10s %-10s %-12s %-12s %-10s\n",
-           "Mem.ID", "MemberID", "Plan", "End Date", "Fee");
-
-    printf("---------------------------------------------------------------\n");
-
+    /*
+       Keep the original table design, but display fields
+       that actually belong to the membership record.
+    */
     while (fscanf(file, "%9s %9s %19s %10s %10s %f %14s",
                   membershipId, memberId, plan, startDate,
                   endDate, &fee, status) == 7) {
 
-        /* Dates must use YYYY-MM-DD format */
         if (strcmp(status, "ACTIVE") == 0 &&
             strcmp(endDate, today) < 0) {
 
-            printf("%-10s %-10s %-12s %-12s %-10.2f\n",
-                   membershipId, memberId, plan, endDate, fee);
+            printf("║ %-10.10s ║ %-16.16s ║ %-12.12s ║ %-36.36s ║ %-8.8s ║\n",
+                   membershipId, memberId, plan, endDate, status);
+
             count++;
         }
     }
+
+    printf("╚════════════╩══════════════════╩══════════════╩══════════════════════════════════════╩══════════╝\n");
 
     if (count == 0) {
         printf("No expired active memberships found.\n");
@@ -181,36 +106,44 @@ void paymentReport(void)
     int count = 0;
 
     clearScreen();
-    printf("\n========== PAYMENT REPORT ==========\n");
+
+    printf("\n");
+    printf("╔══════════════════════════════════════════════════════════════════════════════╗\n");
+    printf("║                                                                              ║\n");
+    printf("║                              PAYMENT REPORT                                  ║\n");
+    printf("╠══════════════╦══════════════╦══════════════╦═════════════════╦═══════════════╣\n");
+    printf("║ PAYMENT ID   ║ MEMBER ID    ║ AMOUNT       ║ PAYMENT DATE    ║ METHOD        ║\n");
+    printf("╠══════════════╬══════════════╬══════════════╬═════════════════╬═══════════════╣\n");
 
     if (file == NULL) {
-        printf("Cannot open payments.txt\n");
+        printf("║                         Cannot open payments.txt                           ║\n");
+        printf("╚══════════════════════════════════════════════════════════════════════════════╝\n");
         return;
     }
-
-    printf("%-12s %-12s %-12s %-15s %-12s\n",
-           "Payment ID", "Member ID", "Amount",
-           "Payment Date", "Method");
-
-    printf("-----------------------------------------------------------------\n");
 
     while (fscanf(file, "%9s %9s %f %10s %19s",
                   paymentId, memberId, &amount,
                   paymentDate, method) == 5) {
 
-        printf("%-12s %-12s %-12.2f %-15s %-12s\n",
-               paymentId, memberId, amount,
-               paymentDate, method);
+        printf("║ %-12.12s ║ %-12.12s ║ %12.2f ║ %-15.15s ║ %-12.12s  ║\n",
+               paymentId, memberId, amount, paymentDate, method);
 
         total += amount;
         count++;
     }
 
-    printf("\nTotal payment records: %d\n", count);
-    printf("Total recorded payments: %.2f\n", total);
+    printf("╠══════════════╩══════════════╩══════════════╩═════════════════╩═══════════════╣\n");
+    printf("║ Total payment records: %-53d ║\n", count);
+    printf("║ Total recorded payments: %-51.2f ║\n", total);
+    printf("╚══════════════════════════════════════════════════════════════════════════════╝\n");
+
+    if (count == 0) {
+        printf("\nNo payment records found.\n");
+    }
 
     fclose(file);
 }
+
 
 /* 5. Display a summary of the system */
 void summaryReport(void)
@@ -243,7 +176,8 @@ void summaryReport(void)
     file = fopen(MEMBER_FILE, "r");
 
     if (file == NULL) {
-        printf("\nCannot open members.txt\n");
+        clearScreen();
+        printf("Cannot open members.txt\n");
         return;
     }
 
@@ -254,11 +188,12 @@ void summaryReport(void)
 
     fclose(file);
 
-    /* Count memberships and their statuses */
+    /* Count memberships */
     file = fopen(MEMBERSHIP_FILE, "r");
 
     if (file == NULL) {
-        printf("\nCannot open memberships.txt\n");
+        clearScreen();
+        printf("Cannot open memberships.txt\n");
         return;
     }
 
@@ -281,11 +216,12 @@ void summaryReport(void)
 
     fclose(file);
 
-    /* Count payments and calculate their total */
+    /* Count payments */
     file = fopen(PAYMENT_FILE, "r");
 
     if (file == NULL) {
-        printf("\nCannot open payments.txt\n");
+        clearScreen();
+        printf("Cannot open payments.txt\n");
         return;
     }
 
@@ -299,27 +235,37 @@ void summaryReport(void)
 
     fclose(file);
 
-    /* Display summary */
+    /* Display summary report UI */
     clearScreen();
-    printf("\n========== AURAFLEX SUMMARY REPORT ==========\n");
-    printf("Report date: %s\n\n", today);
 
-    printf("MEMBERS\n");
-    printf("Total members:                 %d\n", totalMembers);
+    printf("\n");
+    printf("╔══════════════════════════════════════════════════════════════════════════════╗\n");
+    printf("║                           AURAFLEX GYM SYSTEM                                ║\n");
+    printf("║                              SUMMARY REPORT                                  ║\n");
+    printf("║                         Report Date: %-10s                              ║\n", today);
+    printf("╠══════════════════════════════════════════════════════════════════════════════╣\n");
 
-    printf("\nMEMBERSHIPS\n");
-    printf("Total membership records:      %d\n", totalMemberships);
-    printf("Active and not expired:        %d\n", activeMemberships);
-    printf("Expired active memberships:    %d\n", expiredMemberships);
-    printf("Cancelled memberships:         %d\n", cancelledMemberships);
+    printf("║                              MEMBER SUMMARY                                  ║\n");
+    printf("╠══════════════════════════════════════════════════════════════════════════════╣\n");
+    printf("║ %-57s %15d    ║\n", "Total Members", totalMembers);
 
-    printf("\nPAYMENTS\n");
-    printf("Total payment records:         %d\n", totalPayments);
-    printf("Total recorded payment amount: %.2f\n",
-           totalPaymentAmount);
+    printf("╠══════════════════════════════════════════════════════════════════════════════╣\n");
+    printf("║                            MEMBERSHIP SUMMARY                                ║\n");
+    printf("╠══════════════════════════════════════════════════════════════════════════════╣\n");
+    printf("║ %-57s %15d    ║\n", "Total Membership Records", totalMemberships);
+    printf("║ %-57s %15d    ║\n", "Active and Not Expired", activeMemberships);
+    printf("║ %-57s %15d    ║\n", "Expired Active Memberships", expiredMemberships);
+    printf("║ %-57s %15d    ║\n", "Cancelled Memberships", cancelledMemberships);
 
-    printf("\n=============================================\n");
+    printf("╠══════════════════════════════════════════════════════════════════════════════╣\n");
+    printf("║                             PAYMENT SUMMARY                                  ║\n");
+    printf("╠══════════════════════════════════════════════════════════════════════════════╣\n");
+    printf("║ %-57s %15d    ║\n", "Total Payment Records", totalPayments);
+    printf("║ %-57s %15.2f    ║\n", "Total Recorded Payments", totalPaymentAmount);
+
+    printf("╚══════════════════════════════════════════════════════════════════════════════╝\n");
 }
+
 
 /* Main reports menu */
 void reportsMenu(void)
@@ -350,26 +296,24 @@ void reportsMenu(void)
                 /* Clear invalid input */
             }
 
+            choice = 0;
+            pressEnterToContinue();
             continue;
         }
 
-        /*
-           Clear the remainder of the menu input line.
-           This allows pressEnterToContinue() to wait for a
-           new Enter key after the report has been displayed.
-        */
+        /* Consume the menu input line */
         while ((ch = getchar()) != '\n' && ch != EOF) {
             /* Clear remaining input */
         }
 
         switch (choice) {
             case 1:
-                memberReport();
+                viewMembers();
                 pressEnterToContinue();
                 break;
 
             case 2:
-                membershipReport();
+                viewMemberships();
                 pressEnterToContinue();
                 break;
 
@@ -395,6 +339,7 @@ void reportsMenu(void)
             default:
                 printf("Invalid choice. Please select 1-6.\n");
                 pressEnterToContinue();
+                break;
         }
 
     } while (choice != 6);

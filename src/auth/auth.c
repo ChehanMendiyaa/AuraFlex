@@ -1,6 +1,8 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <conio.h>
+
 #include "auth.h"
 #include "system.h"
 #include "ui.h"
@@ -8,24 +10,76 @@
 #define USERS_FILE "data/users.txt"
 #define MAX_ATTEMPTS 3
 
+/*
+ * Read password securely from the Windows console.
+ * Displays '*' instead of the actual password characters.
+ * Supports Backspace and Enter.
+ */
+static void inputPassword(char password[], int maxLength)
+{
+    int i = 0;
+    int ch;
+
+    while (1)
+    {
+        ch = _getch();
+
+        // Enter key
+        if (ch == '\r')
+        {
+            break;
+        }
+
+        // Backspace key
+        else if (ch == '\b')
+        {
+            if (i > 0)
+            {
+                i--;
+                printf("\b \b");
+            }
+        }
+
+        // Handle extended keyboard keys
+        else if (ch == 0 || ch == 224)
+        {
+            (void)_getch();
+        }
+
+        // Normal printable characters
+        else if (ch >= 32 && ch <= 126 && i < maxLength - 1)
+        {
+            password[i++] = (char)ch;
+            printf("*");
+        }
+    }
+
+    password[i] = '\0';
+    printf("\n");
+}
+
+/*
+ * Authenticate a user.
+ * Returns 1 for success and 0 for failure.
+ */
 int login(User *loggedUser)
 {
-    char username[30];
-    char password[50];
+    char username[USERNAME_LENGTH];
+    char password[PASSWORD_LENGTH];
 
-    if (loggedUser == NULL) {
+    if (loggedUser == NULL)
+    {
         return 0;
     }
 
-    for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-
+    for (int attempt = 1; attempt <= MAX_ATTEMPTS; attempt++)
+    {
         clearScreen();
-        //printLogo();
 
         printf("\n");
         printf("  ╔══════════════════════════════════════════════════════════╗\n");
         printf("  ║                                                          ║\n");
-        printf("  ║                      USER LOGIN                          ║\n");
+        printf("  ║                       USER LOGIN                         ║\n");
         printf("  ║                                                          ║\n");
         printf("  ╠══════════════════════════════════════════════════════════╣\n");
         printf("  ║                                                          ║\n");
@@ -34,7 +88,8 @@ int login(User *loggedUser)
         printf("  ║  Username:                                               ║\n");
         printf("  ║  > ");
 
-        if (scanf("%29s", username) != 1) {
+        if (scanf("%29s", username) != 1)
+        {
             return 0;
         }
 
@@ -42,17 +97,16 @@ int login(User *loggedUser)
         printf("  ║  Password:                                               ║\n");
         printf("  ║  > ");
 
-        if (scanf("%49s", password) != 1) {
-            return 0;
-        }
+        // Mask password input with asterisks
+        inputPassword(password, sizeof(password));
 
-        //printf("\n");
         printf("  ║                                                          ║\n");
         printf("  ╚══════════════════════════════════════════════════════════╝\n");
 
         FILE *file = fopen(USERS_FILE, "r");
 
-        if (file == NULL) {
+        if (file == NULL)
+        {
             printf("\n");
             printf("  ╔══════════════════════════════════════════════════════════╗\n");
             printf("  ║  ERROR: Cannot open users file.                          ║\n");
@@ -70,12 +124,12 @@ int login(User *loggedUser)
                       current.userName,
                       current.password,
                       current.role,
-                      current.status) == 5) {
-
+                      current.status) == 5)
+        {
             if (strcmp(username, current.userName) == 0 &&
                 strcmp(password, current.password) == 0 &&
-                strcmp(current.status, "ACTIVE") == 0) {
-
+                strcmp(current.status, "ACTIVE") == 0)
+            {
                 *loggedUser = current;
                 found = 1;
                 break;
@@ -84,9 +138,11 @@ int login(User *loggedUser)
 
         fclose(file);
 
-        if (found) {
-            printf("\n");
+        if (found)
+        {
             clearScreen();
+
+            printf("\n");
             printf("  ╔══════════════════════════════════════════════════════════╗\n");
             printf("  ║                                                          ║\n");
             printf("  ║                   LOGIN SUCCESSFUL                       ║\n");
@@ -101,27 +157,36 @@ int login(User *loggedUser)
             clearScreen2s();
             return 1;
         }
+
         clearScreen();
+
         printf("\n");
         printf("  ╔══════════════════════════════════════════════════════════╗\n");
         printf("  ║                                                          ║\n");
-        printf("  ║                INVALID LOGIN CREDENTIALS                 ║\n");
+        printf("  ║               INVALID LOGIN CREDENTIALS                  ║\n");
         printf("  ║                                                          ║\n");
         printf("  ║  Attempts remaining: %-35d ║\n",
                MAX_ATTEMPTS - attempt);
         printf("  ╚══════════════════════════════════════════════════════════╝\n");
 
-        if (attempt < MAX_ATTEMPTS) {
-            printf("\n   Press Enter to try again...");
+        if (attempt < MAX_ATTEMPTS)
+        {
+            printf("\n  Press Enter to try again...");
 
-            /* Consume the newline left by scanf(). */
-            getchar();
+            // Clear leftover username input, including its newline
+            int ch;
+            while ((ch = getchar()) != '\n' && ch != EOF)
+            {
+                // Discard remaining input
+            }
 
-            /* Wait for the user to press Enter. */
+            // Wait for Enter before retrying
             getchar();
         }
     }
+
     clearScreen();
+
     printf("\n");
     printf("  ╔══════════════════════════════════════════════════════════╗\n");
     printf("  ║                                                          ║\n");
