@@ -31,8 +31,6 @@ static void pauseScreen(void)
     }
 }
 
-
-
 int main(void)
 {
     User loggedUser;
