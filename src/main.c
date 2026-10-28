@@ -9,6 +9,7 @@
 #include "ui.h"
 #include "attendance.h"
 #include "payment.h"
+#include <time.h>
 
 static void clearInputBuffer(void)
 {
@@ -71,7 +72,7 @@ int main(void)
             printLogo();
             printf("║   [1] Member Management          ║                                             ║\n");
             printf("║   [2] Membership Plans           ║                                             ║\n");
-            printf("║   [3] Trainer Management         ║                                             ║\n");
+            printf("║   [3] Trainer Management         ║           %s             ║\n",getDateTime());
             printf("║   [4] Payment Management         ║                                             ║\n");
             printf("║   [5] Attendance Management      ║                                             ║\n");
             printf("║   [6] Reports                    ║                                             ║\n");
@@ -82,13 +83,13 @@ int main(void)
         } else if (strcmp(loggedUser.role, "RECEPTIONIST") == 0) {
             clearScreen();
             printLogo();
-            printf("║   [1] Register Member             ║                                             ║\n");
-            printf("║   [2] Manage Membership           ║                                             ║\n");
-            printf("║   [3] Record Payment              ║                                             ║\n");
-            printf("║   [4] Record Attendance           ║                                             ║\n");
-            printf("║   [5] View Members                ║                                             ║\n");
-            printf("║   [6] Logout                      ║                                             ║\n");
-            printf("╠═══════════════════════════════════╩═════════════════════════════════════════════╝\n");
+            printf("║   [1] Register Member            ║                                             ║\n");
+            printf("║   [2] Manage Membership          ║                                             ║\n");
+            printf("║   [3] Record Payment             ║                                             ║\n");
+            printf("║   [4] Record Attendance          ║           %s             ║\n",getDateTime());
+            printf("║   [5] View Members               ║                                             ║\n");
+            printf("║   [6] Logout                     ║                                             ║\n");
+            printf("╠══════════════════════════════════╩═════════════════════════════════════════════╝\n");
             printf("║\n");
             printf("╚════ Enter your choice: ");
         } else {
