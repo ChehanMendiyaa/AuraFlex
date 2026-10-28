@@ -94,13 +94,13 @@ int main(void)
         } else {
             clearScreen();
             printLogo();
-            printf("║   [1] View Assigned Members       ║                                             ║\n");
-            printf("║   [2] Manage Workout Plans        ║                                             ║\n");
-            printf("║   [3] Manage Nutrition Plans      ║                                             ║\n");
-            printf("║   [4] View Fitness Progress       ║                                             ║\n");
-            printf("║   [5] Manage Goals                ║                                             ║\n");
-            printf("║   [6] Logout                      ║                                             ║\n");
-            printf("╠═══════════════════════════════════╩═════════════════════════════════════════════╝\n");
+            printf("║   [1] View Assigned Members      ║                                             ║\n");
+            printf("║   [2] Manage Workout Plans       ║                                             ║\n");
+            printf("║   [3] Manage Nutrition Plans     ║                                             ║\n");
+            printf("║   [4] View Fitness Progress      ║                                             ║\n");
+            printf("║   [5] Manage Goals               ║                                             ║\n");
+            printf("║   [6] Logout                     ║                                             ║\n");
+            printf("╠══════════════════════════════════╩═════════════════════════════════════════════╝\n");
             printf("║\n");
             printf("╚════ Enter your choice: ");
         }
@@ -172,7 +172,7 @@ int main(void)
                  clearScreen();
                  viewMembers(); 
                  break;
-                 
+
             }
         } else {
 
