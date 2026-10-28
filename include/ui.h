@@ -3,5 +3,7 @@
 
 void printLogo(void);
 void printLogoWithoutl(void);
+void displayDateTime(void);
+const char *getDateTime(void);
 
 #endif
