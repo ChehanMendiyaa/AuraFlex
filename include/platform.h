@@ -9,19 +9,26 @@
     #include <windows.h>
     #include <conio.h>
 
-    /* Windows: read one key without displaying it */
+    /* Initialize Windows terminal */
+    static inline void platform_init_console(void)
+    {
+        SetConsoleOutputCP(CP_UTF8);
+        SetConsoleCP(CP_UTF8);
+    }
+
+    /* Read a key without displaying it */
     static inline int platform_getch(void)
     {
         return _getch();
     }
 
-    /* Windows: clear terminal */
+    /* Clear terminal */
     static inline void platform_clear_screen(void)
     {
         system("cls");
     }
 
-    /* Windows: delay in milliseconds */
+    /* Delay in milliseconds */
     static inline void platform_sleep_ms(unsigned int milliseconds)
     {
         Sleep(milliseconds);
@@ -32,8 +39,15 @@
     #include <termios.h>
     #include <unistd.h>
     #include <time.h>
+    #include <locale.h>
 
-    /* Ubuntu/Linux: read one key without displaying it */
+    /* Initialize Linux terminal */
+    static inline void platform_init_console(void)
+    {
+        setlocale(LC_ALL, "");
+    }
+
+    /* Read a key without displaying it */
     static inline int platform_getch(void)
     {
         struct termios oldTerm, newTerm;
@@ -55,13 +69,13 @@
         return result == 1 ? ch : EOF;
     }
 
-    /* Ubuntu/Linux: clear terminal */
+    /* Clear terminal */
     static inline void platform_clear_screen(void)
     {
         system("clear");
     }
 
-    /* Ubuntu/Linux: delay in milliseconds */
+    /* Delay in milliseconds */
     static inline void platform_sleep_ms(unsigned int milliseconds)
     {
         struct timespec delay;

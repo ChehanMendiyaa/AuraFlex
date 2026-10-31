@@ -1,12 +1,24 @@
-#include <stdlib.h>
-#include <system.h>
+#include <stdio.h>
 #include "platform.h"
+#include "system.h"
 
-void clearScreen(void) {
-    system("cls");
+/*
+ * Clear the terminal screen.
+ * Windows: cls
+ * Ubuntu/Linux: clear
+ */
+void clearScreen(void)
+{
+    platform_clear_screen();
 }
 
-void clearScreen2s(void) {
-    Sleep(2000);
-    system("cls");
+/*
+ * Wait for 2 seconds and then clear the terminal.
+ * Windows: Sleep()
+ * Ubuntu/Linux: nanosleep()
+ */
+void clearScreen2s(void)
+{
+    platform_sleep_ms(2000);
+    platform_clear_screen();
 }
