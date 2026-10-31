@@ -1,11 +1,10 @@
-
 #include <stdio.h>
 #include <string.h>
-#include <conio.h>
 
 #include "auth.h"
 #include "system.h"
 #include "ui.h"
+#include "platform.h"
 
 #define USERS_FILE "data/users.txt"
 #define MAX_ATTEMPTS 3
@@ -20,41 +19,45 @@ static void inputPassword(char password[], int maxLength)
     int i = 0;
     int ch;
 
+    printf(" ");
+    fflush(stdout);
+
     while (1)
     {
-        ch = _getch();
+        ch = platform_getch();
 
-        // Enter key
-        if (ch == '\r')
+        // Stop when Enter is pressed
+        if (ch == '\r' || ch == '\n' || ch == EOF)
         {
             break;
         }
 
-        // Backspace key
-        else if (ch == '\b')
+        // Handle Backspace
+        if (ch == 8 || ch == 127)
         {
             if (i > 0)
             {
                 i--;
                 printf("\b \b");
+                fflush(stdout);
             }
         }
 
-        // Handle extended keyboard keys
-        else if (ch == 0 || ch == 224)
-        {
-            (void)_getch();
-        }
-
-        // Normal printable characters
+        // Accept printable characters
         else if (ch >= 32 && ch <= 126 && i < maxLength - 1)
         {
-            password[i++] = (char)ch;
+            password[i] = (char)ch;
+            i++;
+
+            // Display asterisk instead of password
             printf("*");
+            fflush(stdout);
         }
     }
 
+    // End the password string
     password[i] = '\0';
+
     printf("\n");
 }
 
@@ -86,7 +89,7 @@ int login(User *loggedUser)
         printf("  ║  Enter your credentials to access AuraFlex.              ║\n");
         printf("  ║                                                          ║\n");
         printf("  ║  Username:                                               ║\n");
-        printf("  ║  > ");
+        printf("  ║  >  ");
 
         if (scanf("%29s", username) != 1)
         {

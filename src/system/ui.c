@@ -1,8 +1,13 @@
 #include <stdio.h>
 #include "ui.h"
-#include <windows.h>
+#include "platform.h"
 #include <time.h>
 
+
+void setTextColor(const char *color)
+{
+    printf("%s", color);
+}
 // void printLogo(void)
 // {
 //     SetConsoleOutputCP(CP_UTF8);
@@ -37,7 +42,9 @@ void printLogo(void)
     printf("║     ██║  ██║╚██████╔╝██║  ██║██║  ██║     ██║    ███████╗██████╗  ██╔╝   ██╗   ║\n");
     printf("║     ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝     ╚═╝    ╚══════╝╚══════╝ ╚═╝     ╚═╝  ║\n");
     printf("║                                                                                ║\n");
+    setTextColor("\033[36m");
     printf("║                          GYM & FITNESS MANAGEMENT                              ║\n");
+    setTextColor("\033[0m");
     printf("╠══════════════════════════════════╦═════════════════════════════════════════════╣\n");
 }
 
@@ -56,7 +63,9 @@ void printLogoWithoutl(void)
     printf("║     ██║  ██║╚██████╔╝██║  ██║██║  ██║     ██║    ███████╗██████╗  ██╔╝   ██╗   ║\n");
     printf("║     ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝     ╚═╝    ╚══════╝╚══════╝ ╚═╝     ╚═╝  ║\n");
     printf("║                                                                                ║\n");
+    setTextColor("\033[36m");
     printf("║                          GYM & FITNESS MANAGEMENT                              ║\n");
+    setTextColor("\033[0m");
     printf("╠════════════════════════════════════════════════════════════════════════════════╣\n");
 }
 void displayDateTime(void)
@@ -67,7 +76,7 @@ void displayDateTime(void)
     if (currentTime == NULL) {
         return;
     }
-
+    
     printf("Date: %04d-%02d-%02d | Time: %02d:%02d:%02d\n",
            currentTime->tm_year + 1900,
            currentTime->tm_mon + 1,

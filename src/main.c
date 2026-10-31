@@ -95,7 +95,7 @@ int main(void)
             clearScreen();
             printLogo();
             printf("║   [1] View Assigned Members      ║                                             ║\n");
-            printf("║   [2] Assign Member              ║                                             ║\n");
+            printf("║   [2] Assign Member              ║           %s             ║\n",getDateTime());
             printf("║   [3] Remove Member              ║                                             ║\n");
             printf("║   [4] Logout                     ║                                             ║\n");
             printf("╠══════════════════════════════════╩═════════════════════════════════════════════╝\n");
