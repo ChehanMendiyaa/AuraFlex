@@ -32,7 +32,7 @@ static void pressEnterToContinue(void)
 {
     int ch;
 
-    printf("\nPress Enter to return to the reports menu...");
+    printf(YELLOW"\nPress Enter to return to the reports menu..."RESET);
     fflush(stdout);
 
     while ((ch = getchar()) != '\n' && ch != EOF) {
@@ -284,13 +284,14 @@ void reportsMenu(void)
         printf("║   [4]  Payment Report                                                          ║\n");
         printf("║   [5]  Summary Report                                                          ║\n");
         printf("║   [6]  Return to Main Menu                                                     ║\n");
-        printf("╚════════════════════════════════════════════════════════════════════════════════╝\n");
-        printf("Enter choice: ");
+        printf("║════════════════════════════════════════════════════════════════════════════════╝\n");
+        printf("║\n");
+        printf("╚════Enter choice: ");
 
         result = scanf("%d", &choice);
 
         if (result != 1) {
-            printf("Invalid input. Please enter a number.\n");
+            printf(RED"Invalid input. Please enter a number.\n"RESET);
 
             while ((ch = getchar()) != '\n' && ch != EOF) {
                 /* Clear invalid input */
@@ -333,11 +334,11 @@ void reportsMenu(void)
                 break;
 
             case 6:
-                printf("Returning to the main menu...\n");
+                printf(GREEN"Returning to the main menu...\n"RESET);
                 break;
 
             default:
-                printf("Invalid choice. Please select 1-6.\n");
+                printf(RED"Invalid choice. Please select 1-6.\n"RESET);
                 pressEnterToContinue();
                 break;
         }

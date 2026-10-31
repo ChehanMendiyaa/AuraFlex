@@ -60,7 +60,8 @@ static int readMenuChoice(void)
         end++;
     }
 
-    if (input[0] == '\0' || *end != '\0') {
+    if (input[0] == '\0' || *end != '\0' ||
+        value < 1 || value > 9) {
         return -1;
     }
 
@@ -71,7 +72,7 @@ static void pressEnterToContinue(void)
 {
     char input[8];
 
-    printf("\nPress Enter to continue...");
+    printf(YELLOW"\nPress Enter to continue..."RESET);
     fgets(input, sizeof(input), stdin);
 }
 
@@ -725,9 +726,11 @@ void viewTrainerMembers(void)
 
 /* ---------- Trainer menu ---------- */
 
+
 void trainerMenu(void)
 {
     int choice;
+
     ensureDataDirectory();
 
     do {
@@ -743,59 +746,58 @@ void trainerMenu(void)
         printf("║   [7]  Remove Member from Trainer                                              ║\n");
         printf("║   [8]  View a Trainer's Members                                                ║\n");
         printf("║   [9]  Return to Main Menu                                                     ║\n");
-        printf("╚════════════════════════════════════════════════════════════════════════════════╝\n");
-        printf("Enter choice: ");
+        printf("╠════════════════════════════════════════════════════════════════════════════════╝\n");
+        printf("║\n");
+        printf("╚════Enter choice: ");
 
         choice = readMenuChoice();
+
+        if (choice == -1) {
+            printf(RED "\nInvalid choice! Please enter a number from 1 to 9.\n" RESET);
+            pressEnterToContinue();
+            continue;
+        }
 
         switch (choice) {
             case 1:
                 registerTrainer();
-                pressEnterToContinue();
                 break;
 
             case 2:
                 viewTrainers();
-                pressEnterToContinue();
                 break;
 
             case 3:
                 searchTrainer();
-                pressEnterToContinue();
                 break;
 
             case 4:
                 updateTrainer();
-                pressEnterToContinue();
                 break;
 
             case 5:
                 changeTrainerStatus();
-                pressEnterToContinue();
                 break;
 
             case 6:
                 assignMemberToTrainer();
-                pressEnterToContinue();
                 break;
 
             case 7:
                 removeMemberFromTrainer();
-                pressEnterToContinue();
                 break;
 
             case 8:
                 viewTrainerMembers();
-                pressEnterToContinue();
                 break;
 
             case 9:
-                printf("Returning to main menu...\n");
+                printf(GREEN "\nReturning to main menu...\n" RESET);
                 break;
+        }
 
-            default:
-                printf("Invalid choice. Please try again.\n");
-                pressEnterToContinue();
+        if (choice != 9) {
+            pressEnterToContinue();
         }
 
     } while (choice != 9);
