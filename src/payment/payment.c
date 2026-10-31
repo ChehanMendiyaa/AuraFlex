@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include "ui.h"
+#include "system.h"
 
 #include "payment.h"
 
@@ -516,27 +518,31 @@ void paymentMenu(void)
     int choice;
 
     do {
-        printf("\n");
-        printf("=====================================\n");
-        printf("          PAYMENT MANAGEMENT         \n");
-        printf("=====================================\n");
-        printf("  1. Record Payment\n");
-        printf("  2. Search Payment History\n");
-        printf("  3. View All Payments\n");
-        printf("  4. Calculate Total Payments\n");
-        printf("  5. Return to Main Menu\n");
-        printf("=====================================\n");
-        printf("Enter your choice: ");
+        clearScreen();
+        printLogoWithoutl();
+        printf("║   [1]  Record Payment                                                          ║\n");
+        printf("║   [2]  Search Payment History                                                  ║\n");
+        printf("║   [3]  View All Payments                                                       ║\n");
+        printf("║   [4]  Calculate Total Payments                                                ║\n");
+        printf("║   [5]  Return to Main Menu                                                     ║\n");
+        printf("║════════════════════════════════════════════════════════════════════════════════╝\n");
+        printf("║\n");
+        printf("╚════Enter choice: ");
 
-        if (scanf("%d", &choice) != 1) {
-            printf("Invalid input. Enter a number.\n");
+        if (scanf("%d", &choice) != 1)
+        {
             clearInputBuffer();
+
+            printf(RED "\nInvalid input! Please enter a number from 1 to 5.\n" RESET);
+            printf(YELLOW "\nPress Enter to continue..." RESET);
+            getchar();
             continue;
         }
 
         clearInputBuffer();
 
-        switch (choice) {
+        switch (choice)
+        {
             case 1:
                 paymentRecord();
                 break;
@@ -554,11 +560,18 @@ void paymentMenu(void)
                 break;
 
             case 5:
-                printf("Returning to main menu...\n");
-                break;
+                printf(GREEN "\nReturning to dashboard...\n" RESET);
+                return;
 
             default:
-                printf("Invalid choice. Please select 1-5.\n");
+                printf(RED "\nInvalid choice! Please select 1-5.\n" RESET);
+                break;
+        }
+
+        if (choice != 5)
+        {
+            printf(YELLOW "\nPress Enter to continue..." RESET);
+            getchar();
         }
 
     } while (choice != 5);
