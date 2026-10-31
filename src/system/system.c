@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <system.h>
-#include <windows.h>
+#include "platform.h"
 
 void clearScreen(void) {
     system("cls");
