@@ -214,14 +214,3 @@ Update the responsibility column to reflect the final code contributions rather 
 
 GitHub: https://github.com/ChehanMendiyaa/AuraFlex
 
-## Before submission
-
-- [ ] Confirm the README is saved as `README.md` in the repository root (GitHub displays the root README on the repository front page).
-- [ ] Verify the Windows build using the command above.
-- [ ] Verify the Ubuntu/Linux build using the command above.
-- [ ] Test login and each role's permitted menu actions.
-- [ ] Test create, view, update, and delete operations where supported.
-- [ ] Confirm all required data files are present and contain appropriate sample data.
-- [ ] Remove accidental generated files such as `.DS_Store` and unnecessary duplicate executables from the source folders.
-- [ ] Confirm team names, student IDs, GitHub usernames, and contribution details.
-- [ ] Include the required reports and user documentation in the final submission.
