@@ -1,360 +1,227 @@
-# AuraFlex Gym Management System
+# AuraFlex – Gym Management System
 
-A terminal-based Gym Management System developed in **C**. The project
-is designed to compile with GCC on **Windows (MinGW-w64)** and
-**Ubuntu/Linux** using one shared codebase.
+AuraFlex is a terminal-based Gym Management System developed in **C**. The project is organised into separate modules for authentication, members, memberships, trainers, payments, attendance, reports, and system utilities.
 
-> This README is based on the project structure and details shared
-> during development. Verify the final source-file list, data-file
-> names, and implemented features against the latest integrated code
-> before submission.
+The project uses text files in the `data/` directory to store application records.
 
-## Overview
+## Features and modules
 
-AuraFlex provides role-based terminal menus for common gym
-administration activities. The known roles are Administrator,
-Receptionist and Trainer. The application is divided into C source files
-and header files, with local data files used by the application.
+The repository currently contains the following modules:
 
-## Features and user roles
+| Module | Source file | Header |
+|---|---|---|
+| Authentication | `src/auth/auth.c` | `include/auth.h` |
+| Member management | `src/member/member.c` | `include/member.h` |
+| Membership management | `src/membership/membership.c` | `include/membership.h` |
+| Trainer management | `src/trainers/trainer.c` | `include/trainer.h` |
+| Payment management | `src/payment/payment.c` | `include/payment.h` |
+| Attendance management | `src/attendance/attendance.c` | `include/attendance.h` |
+| Reports | `src/reports/reports.c` | `include/reports.h` |
+| System utilities | `src/system/system.c` | `include/system.h` |
+| Terminal user interface | `src/system/ui.c` | `include/ui.h` |
+| Shared data structures | — | `include/models.h` |
+| Platform-specific helpers | — | `include/platform.h` |
 
-### Administrator
+`src/main.c` is the application entry point.
 
-1.  Member Management
-2.  Membership Plans
-3.  Trainer Management
-4.  Payment Management
-5.  Attendance Management
-6.  Reports
-7.  Logout
+### Data files
 
-### Receptionist
+The application data directory currently contains:
 
-1.  Register Member
-2.  Manage Membership
-3.  Record Payment
-4.  Record Attendance
-5.  View Members
-6.  Logout
+- `data/users.txt`
+- `data/members.txt`
+- `data/memberships.txt`
+- `data/membership_plans.txt`
+- `data/trainers.txt`
+- `data/trainer_members.txt`
+- `data/payments.txt`
+- `data/attendance.txt`
 
-### Trainer
-
-1.  View Assigned Members
-2.  Manage Workout Plans
-3.  Manage Nutrition Plans
-4.  View Fitness Progress
-5.  Manage Goals
-6.  Logout
-
-**Note:** Confirm that every displayed menu option is implemented and
-connected to a working function in the final build. A menu label alone
-does not prove that a feature is complete.
-
-## Technology and requirements
-
--   Language: C
--   Language standard: C11
--   Compiler: GCC
--   Windows compiler: MinGW-w64 GCC
--   Ubuntu/Linux compiler: GCC
--   Interface: Terminal / command line
--   Cross-platform layer: `include/platform.h`
-
-### Ubuntu dependencies
-
-``` bash
-sudo apt update
-sudo apt install build-essential
-```
-
-### Windows dependencies
-
-Install MinGW-w64 GCC and ensure `gcc` is available in the PowerShell
-`PATH`.
+Keep these files in the expected locations when running the application. If the application uses relative paths, start it from the repository root so that the `data/` directory can be found.
 
 ## Project structure
 
-The source layout used in the build commands is:
-
-``` text
+```text
 AuraFlex/
+├── .gitignore
+├── data/
+│   ├── attendance.txt
+│   ├── members.txt
+│   ├── memberships.txt
+│   ├── membership_plans.txt
+│   ├── payments.txt
+│   ├── trainers.txt
+│   ├── trainer_members.txt
+│   └── users.txt
+├── docs/
+│   └── README.md
 ├── include/
-│   ├── platform.h
+│   ├── attendance.h
 │   ├── auth.h
 │   ├── member.h
 │   ├── membership.h
-│   ├── trainer.h
+│   ├── models.h
+│   ├── payment.h
+│   ├── platform.h
 │   ├── reports.h
 │   ├── system.h
-│   ├── ui.h
-│   ├── attendance.h
-│   └── payment.h
+│   ├── trainer.h
+│   └── ui.h
 ├── src/
 │   ├── main.c
+│   ├── attendance/attendance.c
 │   ├── auth/auth.c
 │   ├── member/member.c
 │   ├── membership/membership.c
-│   ├── trainers/trainer.c
+│   ├── output/main.exe
+│   ├── payment/payment.c
 │   ├── reports/reports.c
 │   ├── system/system.c
 │   ├── system/ui.c
-│   ├── attendance/attendance.c
-│   └── payment/payment.c
-├── data/       # Required application data files, if used
-├── build/      # Compiled executable output
-└── README.md
+│   └── trainers/trainer.c
+└── build/
+    └── gym.exe
 ```
 
-### Main components
+> The tree above reflects the repository structure supplied for this README. The executable files shown are build outputs, not source modules.
 
-  -----------------------------------------------------------------------
-  File / module                       Responsibility
-  ----------------------------------- -----------------------------------
-  `main.c`                            Application entry point, login
-                                      flow, role dashboards and menu
-                                      navigation
+## Requirements
 
-  `auth.c`                            User authentication
+- GCC compiler
+- Windows with MinGW-w64, or a Linux distribution with GCC
+- A terminal / command prompt
 
-  `member.c`                          Member operations
+Check that GCC is installed:
 
-  `membership.c`                      Membership operations
-
-  `trainer.c`                         Trainer management and
-                                      trainer/member operations
-
-  `payment.c`                         Payment operations
-
-  `attendance.c`                      Attendance operations
-
-  `reports.c`                         Reports
-
-  `system.c`                          System utilities such as screen
-                                      clearing and delays
-
-  `ui.c`                              Terminal UI and logo
-
-  `platform.h`                        Windows/Linux-specific terminal
-                                      operations
-  -----------------------------------------------------------------------
-
-## Cross-platform support
-
-The project uses conditional compilation in `include/platform.h`:
-
--   `_WIN32` selects Windows-specific implementations.
--   The `#else` branch selects POSIX/Linux implementations.
-
-Shared application code should call wrapper functions rather than
-directly calling operating-system-specific functions:
-
-``` c
-platform_init_console();
-platform_getch();
-platform_clear_screen();
-platform_sleep_ms(2000);
+```bash
+gcc --version
 ```
 
-Examples handled by the platform layer:
+## Build and run
 
-  Operation               Windows               Ubuntu/Linux
-  ----------------------- --------------------- ----------------------
-  Clear terminal          `cls`                 `clear`
-  Read key without echo   `_getch()`            `termios` / `read()`
-  Delay                   `Sleep()`             `nanosleep()`
-  UTF-8 console setup     Windows console API   Terminal locale
+Run the commands from the **AuraFlex project root**.
 
-Keep Windows-only headers and functions inside the `_WIN32` section of
-`platform.h`. Do not call `windows.h`, `SetConsoleOutputCP()`,
-`CP_UTF8`, `_getch()` or `Sleep()` directly from shared modules.
+### Windows (PowerShell with MinGW GCC)
 
-## Build and run on Ubuntu
-
-Open a terminal in the project root:
-
-``` bash
-cd /path/to/AuraFlex
-```
-
-Create the build directory:
-
-``` bash
-mkdir -p build
-```
-
-Compile:
-
-``` bash
-gcc -Wall -Wextra -std=c11 \
--D_POSIX_C_SOURCE=200809L -Iinclude \
-src/main.c \
-src/auth/auth.c \
-src/member/member.c \
-src/membership/membership.c \
-src/reports/reports.c \
-src/system/system.c \
-src/system/ui.c \
-src/attendance/attendance.c \
-src/payment/payment.c \
-src/trainers/trainer.c \
--o build/gym
-```
-
-Run:
-
-``` bash
-./build/gym
-```
-
-## Build and run on Windows
-
-These commands assume MinGW-w64 GCC is installed and available in
-PowerShell.
-
-Create the build directory:
-
-``` powershell
+```powershell
 New-Item -ItemType Directory -Force -Path build | Out-Null
-```
 
-Compile:
-
-``` powershell
 gcc -Wall -Wextra -std=c11 -Iinclude `
-src/main.c `
-src/auth/auth.c `
-src/member/member.c `
-src/membership/membership.c `
-src/reports/reports.c `
-src/system/system.c `
-src/system/ui.c `
-src/attendance/attendance.c `
-src/payment/payment.c `
-src/trainers/trainer.c `
--o build/gym.exe
+  src/main.c `
+  src/auth/auth.c `
+  src/member/member.c `
+  src/membership/membership.c `
+  src/trainers/trainer.c `
+  src/payment/payment.c `
+  src/attendance/attendance.c `
+  src/reports/reports.c `
+  src/system/system.c `
+  src/system/ui.c `
+  -o build/gym.exe
 ```
 
-Run:
+Run the application:
 
-``` powershell
+```powershell
 .\build\gym.exe
 ```
 
-If using Command Prompt rather than PowerShell, use a single-line
-command or the appropriate Command Prompt line-continuation syntax.
+### Ubuntu / Linux
 
-**Important:** These commands use the source files known from the
-project discussions. If your final project has additional or renamed
-`.c` files, add the correct files to the command.
+```bash
+mkdir -p build
 
-## Data files
+gcc -Wall -Wextra -std=c11 -D_POSIX_C_SOURCE=200809L -Iinclude \
+  src/main.c \
+  src/auth/auth.c \
+  src/member/member.c \
+  src/membership/membership.c \
+  src/trainers/trainer.c \
+  src/payment/payment.c \
+  src/attendance/attendance.c \
+  src/reports/reports.c \
+  src/system/system.c \
+  src/system/ui.c \
+  -o build/gym
+```
 
-The application uses local data files according to its implementation.
-Confirm the exact filenames, paths, record formats and required initial
-content from the final source code and data directory.
+Run the application:
 
-Before running:
+```bash
+./build/gym
+```
 
-1.  Include all required data files in the project.
-2.  Preserve their expected filenames and folder locations.
-3.  Run the application from the project root if relative paths are
-    used.
-4.  Ensure the program has permission to read and write the data
-    directory.
-5.  Back up data before testing operations that update or delete
-    records.
+If the compiler reports an undefined reference, check that the corresponding `.c` file is included in the build command and that the function declaration and definition match.
 
-Project discussions referenced `users.txt` and `data/members.txt`;
-verify their final paths and formats. Do not create empty replacement
-files unless the application expects them and their format is known.
+## Cross-platform notes
 
-## User accounts
+The project includes `include/platform.h` for operating-system-specific terminal operations. Keep Windows-only APIs (for example, `windows.h`, `_getch()`, and `Sleep()`) behind platform-specific branches in that header. Application modules should use the project's platform wrapper functions instead of calling Windows-only APIs directly.
 
-No default username or password is specified here. Use the approved test
-accounts supplied by the project team or lecturer and verify them
-against the user data file. Do not commit real or production passwords
-to a public repository.
+When building on Linux, check that no source file directly depends on Windows-only headers or functions.
 
-## How to use the application
+## User roles
 
-1.  Start the executable using the relevant command above.
-2.  Enter the username requested by the login screen.
-3.  Enter the password. If password masking is enabled, asterisks (`*`)
-    appear instead of password characters.
-4.  After successful login, use the dashboard displayed for your role.
-5.  Enter the number of the required menu option.
-6.  Follow the prompts from the selected module.
-7.  Press Enter when prompted to return to the dashboard.
-8.  Select Logout to end the session.
+The application has been described with role-based access for:
+
+- **Admin**
+- **Receptionist**
+- **Trainer**
+
+The exact menu options and permissions should be kept consistent with the implementation in `src/main.c` and the authentication logic in `src/auth/auth.c`. Do not document a menu action as available until it has been tested in the current build.
+
+## Development guidelines
+
+- Keep function declarations in the matching header under `include/`.
+- Keep function implementations in the corresponding module under `src/`.
+- Include shared structures from `include/models.h` where appropriate.
+- Keep persistent text data in `data/`.
+- Use relative file paths consistently and run the application from the repository root.
+- Rebuild after changing source files; do not rely on an old executable in `build/` or `src/output/`.
 
 ## Troubleshooting
 
-  --------------------------------------------------------------------------------------
-  Problem                                            Suggested action
-  -------------------------------------------------- -----------------------------------
-  `gcc: command not found`                           Install GCC/build tools on Ubuntu
-                                                     or configure MinGW-w64 on Windows.
+### `conio.h` or `windows.h` not found on Ubuntu
 
-  `windows.h: No such file or directory` on Ubuntu   Move Windows-specific code behind
-                                                     `_WIN32` and provide a POSIX
-                                                     implementation.
+Remove direct Windows-only includes from portable modules. Use the platform abstraction in `include/platform.h` and compile the Linux branch.
 
-  `conio.h: No such file or directory` on Ubuntu     Use the shared `platform_getch()`
-                                                     implementation instead of directly
-                                                     calling `_getch()`.
+### `undefined reference` during linking
 
-  `Sleep()` is not declared                          Use `platform_sleep_ms()` in shared
-                                                     code.
+Make sure every required implementation file is included in the GCC command. Also check that function names, parameter types, and return types match between the `.h` declaration and `.c` definition.
 
-  `SetConsoleOutputCP` or `CP_UTF8` not declared     Use `platform_init_console()` and
-                                                     keep Windows console APIs inside
-                                                     the `_WIN32` branch.
+### Data files cannot be opened
 
-  `cannot find src/...: No such file or directory`   Check the filename/path and run the
-                                                     command from the project root.
+Run the program from the repository root and confirm the required `.txt` files exist in `data/`. Check the file paths used by the relevant source module.
 
-  `undefined reference to ...`                       Include the `.c` file containing
-                                                     the function and ensure its
-                                                     definition matches the header
-                                                     declaration.
+### Terminal clear or keyboard input behaves differently
 
-  Data file cannot be opened                         Check its path, working directory
-                                                     and read/write permissions.
-
-  Password is empty immediately                      If username input uses `scanf()`,
-                                                     consume the leftover newline before
-                                                     reading the password.
-  --------------------------------------------------------------------------------------
+Use the wrappers provided by `platform.h` for screen clearing, key input, sleeping, and console initialisation. Test these operations in both Windows PowerShell/Windows Terminal and an Ubuntu terminal.
 
 ## Team
 
-  Name      Role
-  --------- -------------
-  Chehan    Team Leader
-  Kiwith    Team Member
-  Idumin    Team Member
-  Sendiya   Team Member
-  Pasindu   Team Member
+Add or update each team member's full name, student ID, and GitHub username here before submission. Ensure the details match the team's official records.
 
-Add each student's registration/index number to the required project
-documents.
+| Team member | Responsibility | GitHub username |
+|---|---|---|
+| Chehan (Team Leader) | Main integration, authentication, reports and system utilities | `ChehanMendiya` |
+| Kiwith | Member, membership and trainer modules | `kivithkaranayaka-bit` |
+| Idumin | Confirm the final assigned module(s) | `Indumin-Sasindu` |
+| Sendiya | Confirm the final assigned module(s) | `Sendiya2` |
+| Pasindu | Confirm the final assigned module(s) | `pasindu2080664` |
 
-## Submission checklist
+Update the responsibility column to reflect the final code contributions rather than planned assignments.
 
--   [ ] Complete integrated C source code (`.c` files)
--   [ ] Required header files (`.h` files)
--   [ ] All required sample and application data files
--   [ ] `README.md`
--   [ ] `SRS_G01.pdf`
--   [ ] `Final_Report_G01.pdf`
--   [ ] `Individual_Con_G01.pdf`
--   [ ] `User_Guide_G01.pdf`
--   [ ] Any additional files requested by the lecturer
+## Repository
 
-Before submission, compile and run the application on both Windows and
-Ubuntu using GCC. Ensure the documentation describes the same features
-as the final integrated implementation.
+GitHub: https://github.com/ChehanMendiyaa/AuraFlex
 
-------------------------------------------------------------------------
+## Before submission
 
-**AuraFlex Gym Management System --- Group G01**
+- [ ] Confirm the README is saved as `README.md` in the repository root (GitHub displays the root README on the repository front page).
+- [ ] Verify the Windows build using the command above.
+- [ ] Verify the Ubuntu/Linux build using the command above.
+- [ ] Test login and each role's permitted menu actions.
+- [ ] Test create, view, update, and delete operations where supported.
+- [ ] Confirm all required data files are present and contain appropriate sample data.
+- [ ] Remove accidental generated files such as `.DS_Store` and unnecessary duplicate executables from the source folders.
+- [ ] Confirm team names, student IDs, GitHub usernames, and contribution details.
+- [ ] Include the required reports and user documentation in the final submission.
