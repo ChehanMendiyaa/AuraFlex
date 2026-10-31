@@ -1,6 +1,6 @@
 #include <stdio.h>
-#include "ui.h"
 #include "platform.h"
+#include "ui.h"
 #include <time.h>
 
 
@@ -29,8 +29,7 @@ void setTextColor(const char *color)
 
 void printLogo(void)
 {
-    SetConsoleOutputCP(CP_UTF8);
-    SetConsoleCP(CP_UTF8);
+    platform_init_console();
 
     printf("\n");
     printf("╔════════════════════════════════════════════════════════════════════════════════╗\n");
@@ -50,8 +49,7 @@ void printLogo(void)
 
 void printLogoWithoutl(void)
 {
-    SetConsoleOutputCP(CP_UTF8);
-    SetConsoleCP(CP_UTF8);
+    platform_init_console();
 
     printf("\n");
     printf("╔════════════════════════════════════════════════════════════════════════════════╗\n");
