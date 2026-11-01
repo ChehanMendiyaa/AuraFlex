@@ -327,7 +327,7 @@ AuraFlex was developed by **Group 11**.
 
 | No. | Team Member | GitHub Username |
 |---:|---|---|
-| 1 | S.H. Chehan Mendiya | [`ChehanMendiya`](https://github.com/ChehanMendiya) |
+| 1 | S.H. Chehan Mendiya | [`ChehanMendiya`](https://github.com/ChehanMendiyaa) |
 | 2 | K.R. Karanayaka | [`kivithkaranayaka-bit`](https://github.com/kivithkaranayaka-bit) |
 | 3 | R. Indumin Sasindu | [`Indumin-Sasindu`](https://github.com/Indumin-Sasindu) |
 | 4 | T.V.K. Sendiya | [`Sendiya2`](https://github.com/Sendiya2) |
