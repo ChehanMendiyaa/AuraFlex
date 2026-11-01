@@ -21,7 +21,7 @@ typedef struct {
     char status[15];
 } Trainer;
 
-/* ---------- Input helpers ---------- */
+// Input helpers
 
 static void readLine(const char *prompt, char *buffer, size_t size)
 {
