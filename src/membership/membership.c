@@ -14,9 +14,6 @@
 #define BACKUP_FILE     "data/memberships.bak"
 
 int readMembership(FILE *fp, Membership *m);
-/* ---------------------------------------------------------
-   INPUT HELPERS
-   --------------------------------------------------------- */
 
 static void clearInputBuffer(void)
 {
@@ -59,12 +56,6 @@ static void pauseScreen(void)
     }
 }
 
-/* ---------------------------------------------------------
-   CHECK MEMBER
-   Assumes member ID is the first field in members.txt.
-   Read the rest of each line from the FILE, not stdin.
-   --------------------------------------------------------- */
-
 int checkMember(const char *memberId)
 {
     FILE *fp;
@@ -94,10 +85,6 @@ int checkMember(const char *memberId)
     return 0;
 }
 
-/* ---------------------------------------------------------
-   CHECK MEMBERSHIP ID
-   --------------------------------------------------------- */
-
 int checkMembershipID(const char *membershipId)
 {
     FILE *fp;
@@ -124,12 +111,6 @@ int checkMembershipID(const char *membershipId)
     return 0;
 }
 
-/* ---------------------------------------------------------
-   READ MEMBERSHIP RECORD
-   Format:
-   membershipId memberId planName startDate endDate fee status
-   --------------------------------------------------------- */
-
 int readMembership(FILE *fp, Membership *m)
 {
     if (fp == NULL || m == NULL) {
@@ -146,9 +127,6 @@ int readMembership(FILE *fp, Membership *m)
                   m->status) == 7;
 }
 
-/* ---------------------------------------------------------
-   WRITE MEMBERSHIP RECORD
-   --------------------------------------------------------- */
 
 void writeMembership(FILE *fp, const Membership *m)
 {
@@ -166,18 +144,9 @@ void writeMembership(FILE *fp, const Membership *m)
             m->status);
 }
 
-/* ---------------------------------------------------------
-   SAVE TEMPORARY MEMBERSHIP FILE
-   Uses a backup so the original can be restored on failure.
-   --------------------------------------------------------- */
 
 static int replaceMembershipFile(void)
 {
-    /*
-       Do not delete an existing backup before checking it.
-       An existing backup may be the only recovery copy.
-    */
-
     FILE *check = fopen(BACKUP_FILE, "r");
 
     if (check != NULL) {
@@ -212,10 +181,6 @@ static int replaceMembershipFile(void)
 
     return 1;
 }
-
-/* ---------------------------------------------------------
-   ASSIGN MEMBERSHIP
-   --------------------------------------------------------- */
 
 void assignMembership(void)
 {
@@ -275,7 +240,6 @@ void assignMembership(void)
         return;
     }
 
-    /* Membership date validation intentionally removed. */
 
     printf("Enter Membership Fee: ");
 
@@ -286,12 +250,6 @@ void assignMembership(void)
     }
 
     strcpy(m.status, "ACTIVE");
-
-    /*
-       Reuse the payment module.
-       It handles payment ID generation, date, method,
-       validation, and writing the payment record.
-    */
 
     if (!processMembershipPayment(m.memberId, m.fee)) {
         printf("Membership assignment cancelled because payment failed.\n");
@@ -317,16 +275,12 @@ void assignMembership(void)
     printf("\nMembership assigned successfully!\n");
 }
 
-/* ---------------------------------------------------------
-   VIEW ALL MEMBERSHIPS
-   --------------------------------------------------------- */
 
 void viewMemberships(void)
 {
     FILE *fp = fopen(MEMBERSHIP_FILE, "r");
     Membership m;
     clearScreen();
-    // printf("\n========== ALL MEMBERSHIPS ==========\n");
 
     if (fp == NULL)
     {
@@ -334,11 +288,6 @@ void viewMemberships(void)
         return;
     }
 
-    // printf("%-15s %-15s %-15s %-12s %-12s %-12s %-12s\n",
-    //        "Membership ID", "Member ID", "Plan",
-    //        "Start Date", "End Date", "Fee", "Status");
-
-    // printf("--------------------------------------------------------------------------------\n");
 
     printf("╔═════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗\n");
     printf("║                                              ALL MEMBERSHIPS                                                    ║\n");
@@ -362,9 +311,6 @@ void viewMemberships(void)
     fclose(fp);
     printf("╚═══════════════════╩══════════════════╩═════════════════╩═════════════╩═══════════════╩═════════════╩════════════╝\n");
 }
-/* ---------------------------------------------------------
-   RENEW MEMBERSHIP
-   --------------------------------------------------------- */
 
 void renewMembership(void)
 {
@@ -438,8 +384,6 @@ void renewMembership(void)
                 return;
             }
 
-            /* Membership date validation intentionally removed. */
-
             printf("Enter Renewal Fee: ");
 
             if (scanf("%f", &m.fee) != 1 || m.fee <= 0.0f) {
@@ -451,10 +395,6 @@ void renewMembership(void)
                 return;
             }
 
-            /*
-               Process the renewal payment using payment.c.
-               If payment fails, do not replace the membership file.
-            */
 
             if (!processMembershipPayment(m.memberId, m.fee)) {
                 fclose(fp);
@@ -500,11 +440,6 @@ void renewMembership(void)
     printf("Membership renewed successfully!\n");
 }
 
-/* ---------------------------------------------------------
-   VIEW EXPIRED MEMBERSHIPS
-   Displays records whose status is EXPIRED.
-   --------------------------------------------------------- */
-
 void viewExpiredMemberships(void)
 {
     FILE *fp;
@@ -540,9 +475,6 @@ void viewExpiredMemberships(void)
     }
 }
 
-/* ---------------------------------------------------------
-   CANCEL MEMBERSHIP
-   --------------------------------------------------------- */
 
 void cancelMembership(void)
 {
@@ -619,29 +551,15 @@ void cancelMembership(void)
     printf("Membership cancelled successfully!\n");
 }
 
-/* ---------------------------------------------------------
-   RECORD A STANDALONE PAYMENT
-   Delegate to the payment module.
-   --------------------------------------------------------- */
-
 void recordPayment(void)
 {   clearScreen();
     paymentRecord();
 }
 
-/* ---------------------------------------------------------
-   VIEW PAYMENT HISTORY
-   Delegate to the payment module.
-   --------------------------------------------------------- */
-
 void viewPayments(void)
 {   clearScreen();
     viewPaymentHistory();
 }
-
-/* ---------------------------------------------------------
-   MEMBERSHIP MANAGEMENT MENU
-   --------------------------------------------------------- */
 
 void membershipMenu(void)
 {

@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
@@ -10,7 +9,6 @@
 #define MEMBERS_FILE "data/members.txt"
 #define TEMP_FILE "data/temp.txt"
 
-/* Read one member record from the file */
 static int readMember(FILE *file, Member *m)
 {
     return fscanf(file, "%9s %49s %19s %59s %14s",
@@ -21,7 +19,6 @@ static int readMember(FILE *file, Member *m)
                   m->status) == 5;
 }
 
-/* Check whether a member ID already exists */
 static int memberExists(const char *id)
 {
     Member m;
@@ -43,7 +40,6 @@ static int memberExists(const char *id)
     return 0;
 }
 
-/* Register a new member */
 void registerMember(void)
 {
     Member m;
@@ -97,7 +93,6 @@ void registerMember(void)
     printf("\nMember registered successfully!\n");
 }
 
-/* View all members */
 void viewMembers(void)
 {
     Member m;
@@ -114,7 +109,6 @@ void viewMembers(void)
         return;
     }
 
-    /* Count members first */
     while (readMember(file, &m))
     {
         total++;
@@ -144,7 +138,6 @@ void viewMembers(void)
     fclose(file);
 }
 
-/* Search for a member by ID */
 void searchMember(void)
 {
     Member m;
@@ -192,7 +185,6 @@ void searchMember(void)
         printf("Member not found.\n");
 }
 
-/* Update member details */
 void updateMember(void)
 {
     Member m;
@@ -284,7 +276,6 @@ void updateMember(void)
         return;
     }
 
-    /* Replace the original file */
     if (remove(MEMBERS_FILE) != 0)
     {
         remove(TEMP_FILE);
@@ -301,7 +292,6 @@ void updateMember(void)
     printf("Member updated successfully!\n");
 }
 
-/* Change member status to FROZEN or ACTIVE */
 static void changeStatus(const char *newStatus)
 {
     Member m;
@@ -390,19 +380,16 @@ static void changeStatus(const char *newStatus)
     }
 }
 
-/* Freeze a member */
 void freezeMember(void)
 {
     changeStatus("FROZEN");
 }
 
-/* Unfreeze a member */
 void unfreezeMember(void)
 {
     changeStatus("ACTIVE");
 }
 
-/* Member management menu */
 void memberMenu(void)
 {
     int choice;
@@ -438,7 +425,6 @@ void memberMenu(void)
             continue;
         }
 
-        /* Clear the remaining input */
         int ch;
         while ((ch = getchar()) != '\n' && ch != EOF)
         {
