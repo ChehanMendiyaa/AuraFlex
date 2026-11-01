@@ -8,12 +8,10 @@
 #include "member.h"
 #include "membership.h"
 
-/* Data files */
 #define MEMBER_FILE "data/members.txt"
 #define MEMBERSHIP_FILE "data/memberships.txt"
 #define PAYMENT_FILE "data/payments.txt"
 
-/* Get today's date in YYYY-MM-DD format */
 static void getToday(char today[11])
 {
     time_t now = time(NULL);
@@ -27,7 +25,6 @@ static void getToday(char today[11])
     strftime(today, 11, "%Y-%m-%d", currentDate);
 }
 
-/* Wait for the user to press Enter */
 static void pressEnterToContinue(void)
 {
     int ch;
@@ -40,7 +37,6 @@ static void pressEnterToContinue(void)
     }
 }
 
-/* 3. Display active memberships whose end dates have passed */
 void expiredMembershipReport(void)
 {
     FILE *file = fopen(MEMBERSHIP_FILE, "r");
@@ -66,10 +62,7 @@ void expiredMembershipReport(void)
     printf("║ MEMBER ID  ║ NAME             ║ PHONE        ║ EMAIL                                ║ STATUS   ║\n");
     printf("╠════════════╬══════════════════╬══════════════╬══════════════════════════════════════╬══════════╣\n");
 
-    /*
-       Keep the original table design, but display fields
-       that actually belong to the membership record.
-    */
+
     while (fscanf(file, "%9s %9s %19s %10s %10s %f %14s",
                   membershipId, memberId, plan, startDate,
                   endDate, &fee, status) == 7) {
@@ -95,7 +88,6 @@ void expiredMembershipReport(void)
     fclose(file);
 }
 
-/* 4. Display all payment records */
 void paymentReport(void)
 {
     FILE *file = fopen(PAYMENT_FILE, "r");
@@ -144,8 +136,6 @@ void paymentReport(void)
     fclose(file);
 }
 
-
-/* 5. Display a summary of the system */
 void summaryReport(void)
 {
     FILE *file;
@@ -172,7 +162,6 @@ void summaryReport(void)
 
     getToday(today);
 
-    /* Count members */
     file = fopen(MEMBER_FILE, "r");
 
     if (file == NULL) {
@@ -188,7 +177,6 @@ void summaryReport(void)
 
     fclose(file);
 
-    /* Count memberships */
     file = fopen(MEMBERSHIP_FILE, "r");
 
     if (file == NULL) {
@@ -216,7 +204,6 @@ void summaryReport(void)
 
     fclose(file);
 
-    /* Count payments */
     file = fopen(PAYMENT_FILE, "r");
 
     if (file == NULL) {
@@ -235,7 +222,6 @@ void summaryReport(void)
 
     fclose(file);
 
-    /* Display summary report UI */
     clearScreen();
 
     printf("\n");
@@ -266,8 +252,6 @@ void summaryReport(void)
     printf("╚══════════════════════════════════════════════════════════════════════════════╝\n");
 }
 
-
-/* Main reports menu */
 void reportsMenu(void)
 {
     int choice;
@@ -302,7 +286,6 @@ void reportsMenu(void)
             continue;
         }
 
-        /* Consume the menu input line */
         while ((ch = getchar()) != '\n' && ch != EOF) {
             /* Clear remaining input */
         }
