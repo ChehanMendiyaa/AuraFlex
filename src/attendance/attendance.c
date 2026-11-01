@@ -29,7 +29,7 @@ static void pressEnterToContinue(void)
     while ((ch = getchar()) != '\n' && ch != EOF) {
     }
 
-    printf("\nPress Enter to return to the previous menu...");
+    printf(YELLOW"\nPress Enter to return to the previous menu..."RESET);
 
     /* Wait for the user to press Enter */
     while ((ch = getchar()) != '\n' && ch != EOF) {
@@ -468,8 +468,9 @@ void attendanceMenu(void)
         printf("║   [4]  View Attendance History                                                 ║\n");
         printf("║   [5]  Daily Attendance Summary                                                ║\n");
         printf("║   [6]  Return to Dashboard                                                     ║\n");
-        printf("╚════════════════════════════════════════════════════════════════════════════════╝\n");
-        printf("Enter choice: ");
+        printf("║════════════════════════════════════════════════════════════════════════════════╝\n");
+        printf("║\n");
+        printf("╚════Enter choice: ");
 
         if (scanf("%d", &choice) != 1) {
             int ch;
@@ -477,7 +478,8 @@ void attendanceMenu(void)
             while ((ch = getchar()) != '\n' && ch != EOF) {
             }
 
-            printf("Invalid input. Enter a number.\n");
+            printf(RED "\nInvalid input! Please enter a number from 1 to 5.\n" RESET);
+            printf(YELLOW "\nPress Enter to continue..." RESET);
             pressEnterToContinue();
             continue;
         }
@@ -504,11 +506,12 @@ void attendanceMenu(void)
                 break;
 
             case 6:
-                printf("Returning to main menu...\n");
-                break;
+                printf(GREEN "\nReturning to dashboard...\n" RESET);
+                pressEnterToContinue();
+                return;
 
             default:
-                printf("Invalid choice. Please try again.\n");
+                printf(RED "\nInvalid choice! Please select 1-6.\n" RESET);
                 pressEnterToContinue();
         }
 

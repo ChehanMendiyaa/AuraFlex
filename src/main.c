@@ -22,7 +22,7 @@ static void clearInputBuffer(void)
 
 static void pauseScreen(void)
 {
-    printf("\nPress Enter to return to the dashboard...");
+    printf(YELLOW"\nPress Enter to return to the dashboard..."RESET);
 
     // waiting for the user to press enter 
     int ch;
@@ -30,8 +30,6 @@ static void pauseScreen(void)
         /* Discard input */
     }
 }
-
-
 
 int main(void)
 {
@@ -97,7 +95,7 @@ int main(void)
             clearScreen();
             printLogo();
             printf("║   [1] View Assigned Members      ║                                             ║\n");
-            printf("║   [2] Assign Member              ║                                             ║\n");
+            printf("║   [2] Assign Member              ║           %s             ║\n",getDateTime());
             printf("║   [3] Remove Member              ║                                             ║\n");
             printf("║   [4] Logout                     ║                                             ║\n");
             printf("╠══════════════════════════════════╩═════════════════════════════════════════════╝\n");
@@ -106,26 +104,32 @@ int main(void)
         }
 
 
+     
         if (scanf("%d", &choice) != 1) {
-            printf("\nInvalid input. Please enter a number.\n");
+            printf(RED "\nInvalid input. Please enter a number.\n" RESET);
             clearInputBuffer();
+            pauseScreen();
             continue;
         }
 
         clearInputBuffer();
-        clearScreen();
+
         /* Logout */
         if (choice == logoutChoice) {
-            printf("\nLogged out successfully. Goodbye, %s!\n",
+            printf(YELLOW "\nLogged out successfully. Goodbye, %s!\n" RESET,
                    loggedUser.userName);
             break;
         }
 
-        /* Check the selected menu option */
-        if (choice < 1 || choice >= logoutChoice) {
-            printf("\nInvalid menu choice. Please try again.\n");
+        /* Check invalid menu choices */
+        if (choice < 1 || choice > logoutChoice) {
+            printf(RED "\nInvalid menu choice. Please try again.\n" RESET);
+            pauseScreen();
             continue;
         }
+
+        clearScreen();
+
 
         if (strcmp(loggedUser.role, "ADMIN") == 0) {
             switch (choice) {
@@ -194,7 +198,7 @@ int main(void)
                     break;
 
                 default:
-                    printf("Invalid choice!\n");
+                    printf(RED"Invalid choice!\n"RESET);
                     break;
             }
         }

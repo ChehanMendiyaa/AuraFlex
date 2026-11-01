@@ -419,8 +419,9 @@ void memberMenu(void)
         printf("║   [5]  Freeze Member                                                           ║\n");
         printf("║   [6]  Unfreeze Member                                                         ║\n");
         printf("║   [7]  Return to Dashboard                                                     ║\n");
-        printf("╚════════════════════════════════════════════════════════════════════════════════╝\n");
-        printf("Enter choice: ");
+        printf("║════════════════════════════════════════════════════════════════════════════════╝\n");
+        printf("║\n");
+        printf("╚════Enter choice: ");
 
         if (scanf("%d", &choice) != 1)
         {
@@ -431,9 +432,17 @@ void memberMenu(void)
                 /* Clear invalid input */
             }
 
-            printf("Please enter a valid number.\n");
-            choice = 0;
+            printf(RED "\nPlease enter a valid number.\n" RESET);
+            printf(YELLOW "\nPress Enter to continue..." RESET);
+            getchar();
             continue;
+        }
+
+        /* Clear the remaining input */
+        int ch;
+        while ((ch = getchar()) != '\n' && ch != EOF)
+        {
+            /* Clear input buffer */
         }
 
         switch (choice)
@@ -463,24 +472,17 @@ void memberMenu(void)
                 break;
 
             case 7:
-                printf("Returning to dashboard...\n");
+                printf(GREEN "\nReturning to dashboard...\n" RESET);
                 break;
 
             default:
-                printf("Invalid choice.\n");
+                printf(RED "\nInvalid choice. Please select 1-7.\n" RESET);
+                break;
         }
 
-        if (choice >= 1 && choice <= 6)
+        if (choice != 7)
         {
-            int ch;
-
-            printf("\nPress Enter to continue...");
-
-            while ((ch = getchar()) != '\n' && ch != EOF)
-            {
-                /* Clear remaining input */
-            }
-
+            printf(YELLOW "\nPress Enter to continue..." RESET);
             getchar();
         }
 

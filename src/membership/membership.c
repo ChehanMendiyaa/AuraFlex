@@ -32,13 +32,15 @@ static int readChoice(void)
     int choice;
     int ch;
 
-    if (scanf("%d", &choice) != 1) {
+    if (scanf("%d", &choice) != 1)
+    {
         clearInputBuffer();
         return -1;
     }
 
-    while ((ch = getchar()) != '\n' && ch != EOF) {
-        /* Discard remaining characters */
+    while ((ch = getchar()) != '\n' && ch != EOF)
+    {
+        /* Clear remaining input */
     }
 
     return choice;
@@ -46,9 +48,15 @@ static int readChoice(void)
 
 static void pauseScreen(void)
 {
-    printf("\nPress Enter to continue...");
-    clearInputBuffer();
-    getchar();
+    int ch;
+
+    printf(YELLOW "\nPress Enter to continue..." RESET);
+    fflush(stdout);
+
+    while ((ch = getchar()) != '\n' && ch != EOF)
+    {
+        /* Wait for Enter */
+    }
 }
 
 /* ---------------------------------------------------------
@@ -651,12 +659,20 @@ void membershipMenu(void)
         printf("║   [6]  Record Payment                                                          ║\n");
         printf("║   [7]  View Payments                                                           ║\n");
         printf("║   [8]  Return to Dashboard                                                     ║\n");
-        printf("╚════════════════════════════════════════════════════════════════════════════════╝\n");
-        printf("Enter choice: ");
+        printf("║════════════════════════════════════════════════════════════════════════════════╝\n");
+        printf("║\n");
+        printf("╚════Enter choice: ");
 
         choice = readChoice();
+        if (choice == -1)
+        {
+            printf(RED "\nInvalid input! Please enter a number.\n" RESET);
+            pauseScreen();
+            continue;
+        }
 
-        switch (choice) {
+        switch (choice)
+        {
             case 1:
                 assignMembership();
                 break;
@@ -686,21 +702,19 @@ void membershipMenu(void)
                 break;
 
             case 8:
+                printf(GREEN "\nReturning to dashboard...\n" RESET);
                 return;
-                break;
-
-            case 0:
-                printf("Returning to main menu...\n");
-                break;
 
             default:
-                printf("Invalid choice! Please try again.\n");
+                printf(RED "\nInvalid choice! Please select 1-8.\n" RESET);
                 break;
         }
 
-        if (choice != 0) {
+        if (choice != 8)
+        {
             pauseScreen();
         }
+        
 
-    } while (choice != 0);
+    } while (choice != 8);
 }
