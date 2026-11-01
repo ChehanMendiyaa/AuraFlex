@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -24,16 +23,11 @@ typedef struct {
     char method[METHOD_LENGTH];
 } Payment;
 
-/* ---------------------------------------------------------
-   INPUT HELPERS
-   --------------------------------------------------------- */
-
 static void clearInputBuffer(void)
 {
     int ch;
 
     while ((ch = getchar()) != '\n' && ch != EOF) {
-        /* Discard remaining input */
     }
 }
 
@@ -45,19 +39,10 @@ static void readText(const char *prompt, char *buffer, size_t size)
         buffer[0] = '\0';
         return;
     }
-
     buffer[strcspn(buffer, "\n")] = '\0';
-
-    /* If input exceeded the buffer, discard the remaining characters. */
     if (strchr(buffer, '\0') != NULL) {
-        /* No action needed here; newline handling is done below. */
     }
 }
-
-/* ---------------------------------------------------------
-   DATE VALIDATION
-   Format: YYYY-MM-DD
-   --------------------------------------------------------- */
 
 static int validDate(const char *date)
 {
@@ -110,12 +95,6 @@ static int validDate(const char *date)
     return day <= daysInMonth;
 }
 
-/* ---------------------------------------------------------
-   MEMBER VALIDATION
-   Expected members.txt format:
-   memberId name phone email status
-   --------------------------------------------------------- */
-
 static int paymentMemberExists(const char *memberId)
 {
     FILE *file = fopen(MEMBERS_FILE, "r");
@@ -152,12 +131,6 @@ static int paymentMemberExists(const char *memberId)
     printf("Error: Member ID '%s' was not found.\n", memberId);
     return 0;
 }
-
-/* ---------------------------------------------------------
-   PAYMENT FILE HELPERS
-   Expected payments.txt format:
-   paymentId memberId amount paymentDate method
-   --------------------------------------------------------- */
 
 static int readPayment(FILE *file, Payment *payment)
 {
@@ -220,11 +193,6 @@ static int generatePaymentId(char *paymentId)
     return 1;
 }
 
-/* ---------------------------------------------------------
-   SHARED PAYMENT PROCESS
-   Both paymentRecord() and membership.c use this function.
-   --------------------------------------------------------- */
-
 static int savePayment(const char *memberId, float amount)
 {
     Payment payment;
@@ -259,7 +227,6 @@ static int savePayment(const char *memberId, float amount)
         return 0;
     }
 
-    /* Get and validate payment date. */
     while (1) {
         readText("Enter payment date (YYYY-MM-DD): ",
                  dateInput, sizeof(dateInput));
@@ -272,7 +239,6 @@ static int savePayment(const char *memberId, float amount)
         printf("Invalid date. Please use YYYY-MM-DD.\n");
     }
 
-    /* Get and validate payment method. */
     while (1) {
         readText("Enter payment method (CASH/CARD/ONLINE): ",
                  methodInput, sizeof(methodInput));
@@ -327,10 +293,6 @@ static int savePayment(const char *memberId, float amount)
     return 1;
 }
 
-/* ---------------------------------------------------------
-   PUBLIC FUNCTION: NORMAL PAYMENT
-   --------------------------------------------------------- */
-
 void paymentRecord(void)
 {
     char memberId[MEMBER_ID_LENGTH];
@@ -363,11 +325,6 @@ void paymentRecord(void)
     savePayment(memberId, amount);
 }
 
-/* ---------------------------------------------------------
-   PUBLIC FUNCTION: MEMBERSHIP PAYMENT
-   Call this function from membership.c.
-   --------------------------------------------------------- */
-
 int processMembershipPayment(const char *memberId, float amount)
 {
     printf("\n========== MEMBERSHIP PAYMENT ==========\n");
@@ -381,10 +338,6 @@ int processMembershipPayment(const char *memberId, float amount)
 
     return savePayment(memberId, amount);
 }
-
-/* ---------------------------------------------------------
-   SEARCH PAYMENT HISTORY
-   --------------------------------------------------------- */
 
 void searchPaymentHistory(void)
 {
@@ -431,17 +384,11 @@ void searchPaymentHistory(void)
     }
 }
 
-/* ---------------------------------------------------------
-   VIEW ALL PAYMENTS
-   --------------------------------------------------------- */
-
 void viewPaymentHistory(void)
 {
     FILE *file;
     Payment payment;
     int found = 0;
-
-    //printf("\n================ ALL PAYMENT HISTORY ================\n");
 
     file = fopen(PAYMENTS_FILE, "r");
 
@@ -450,9 +397,6 @@ void viewPaymentHistory(void)
         return;
     }
 
-    // printf("%-12s %-12s %-12s %-14s %-10s\n",
-    //        "Payment ID", "Member ID", "Amount", "Date", "Method");
-    // printf("---------------------------------------------------------------\n");
     printf("╔═══════════════════════════════════════════════════════════════════════════════════════╗\n");
     printf("║                                 ALL PAYMENT HISTORY                                   ║\n");
     printf("║                                                                                       ║\n");
@@ -477,10 +421,6 @@ void viewPaymentHistory(void)
         printf("No payment records available.\n");
     }
 }
-
-/* ---------------------------------------------------------
-   CALCULATE TOTAL PAYMENTS
-   --------------------------------------------------------- */
 
 void calculateTotalPayments(void)
 {
@@ -508,10 +448,6 @@ void calculateTotalPayments(void)
     printf("Total payments     : %.2f\n", total);
     printf("=====================================\n");
 }
-
-/* ---------------------------------------------------------
-   PAYMENT MENU
-   --------------------------------------------------------- */
 
 void paymentMenu(void)
 {
