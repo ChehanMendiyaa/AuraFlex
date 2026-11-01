@@ -20,23 +20,18 @@ typedef struct {
     char checkOut[10];
 } Attendance;
 
-/* Wait for Enter, handling the newline left by scanf */
+
 static void pressEnterToContinue(void)
 {
     int ch;
-
-    /* Clear any remaining characters from the previous input */
     while ((ch = getchar()) != '\n' && ch != EOF) {
     }
 
-    printf(YELLOW"\nPress Enter to return to the previous menu..."RESET);
-
-    /* Wait for the user to press Enter */
+    printf(YELLOW"\nPress Enter to return to the previous menu..."RESET);    
     while ((ch = getchar()) != '\n' && ch != EOF) {
     }
 }
 
-/* Get today's date in YYYY-MM-DD format */
 static void getToday(char date[])
 {
     time_t now = time(NULL);
@@ -46,11 +41,9 @@ static void getToday(char date[])
         strcpy(date, "0000-00-00");
         return;
     }
-
     strftime(date, 11, "%Y-%m-%d", current);
 }
 
-/* Get current time in HH:MM format */
 static void getCurrentTime(char timeText[])
 {
     time_t now = time(NULL);
@@ -64,7 +57,6 @@ static void getCurrentTime(char timeText[])
     strftime(timeText, 10, "%H:%M", current);
 }
 
-/* Check whether a member exists and is active */
 static int memberExists(const char *memberId)
 {
     FILE *file = fopen(MEMBERS_FILE, "r");
@@ -87,7 +79,6 @@ static int memberExists(const char *memberId)
     return 0;
 }
 
-/* Read one attendance record */
 static int readAttendance(FILE *file, Attendance *record)
 {
     return fscanf(file, "%19s %9s %10s %9s %9s",
@@ -98,7 +89,6 @@ static int readAttendance(FILE *file, Attendance *record)
                   record->checkOut) == 5;
 }
 
-/* Generate the next attendance ID */
 static void generateAttendanceId(char id[])
 {
     FILE *file = fopen(ATTENDANCE_FILE, "r");
@@ -121,7 +111,6 @@ static void generateAttendanceId(char id[])
     sprintf(id, "A%03d", highest + 1);
 }
 
-/* Check whether a member is still checked in today */
 static int findTodayAttendance(const char *memberId,
                                Attendance *found)
 {
@@ -150,7 +139,7 @@ static int findTodayAttendance(const char *memberId,
     return 0;
 }
 
-/* Record member check-in */
+
 void recordCheckIn(void)
 {
     FILE *file;
@@ -210,7 +199,6 @@ void recordCheckIn(void)
     printf("Check-in Time: %s\n", record.checkIn);
 }
 
-/* Record member check-out */
 void recordCheckOut(void)
 {
     FILE *file, *temp;
@@ -302,10 +290,6 @@ void recordCheckOut(void)
         return;
     }
 
-    /*
-       Replace the original file after the temporary file
-       has been written successfully.
-    */
     if (rename(TEMP_FILE, ATTENDANCE_FILE) != 0) {
         printf("Could not replace attendance file.\n");
         printf("Your original attendance file has been kept.\n");
@@ -318,7 +302,6 @@ void recordCheckOut(void)
     printf("Check-out Time: %s\n", currentTime);
 }
 
-/* Search attendance records by member ID */
 void searchAttendance(void)
 {
     FILE *file;
@@ -364,7 +347,6 @@ void searchAttendance(void)
     }
 }
 
-/* View all attendance records */
 void viewAttendanceHistory(void)
 {
     FILE *file;
@@ -408,7 +390,6 @@ void viewAttendanceHistory(void)
     pressEnterToContinue();
 }
 
-/* Display today's attendance summary */
 void dailyAttendanceSummary(void)
 {
     FILE *file;
@@ -453,7 +434,6 @@ void dailyAttendanceSummary(void)
     pressEnterToContinue();
 }
 
-/* Attendance menu */
 void attendanceMenu(void)
 {
     int choice;
