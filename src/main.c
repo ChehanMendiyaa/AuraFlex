@@ -24,7 +24,6 @@ static void pauseScreen(void)
 {
     printf(YELLOW"\nPress Enter to return to the dashboard..."RESET);
 
-    // waiting for the user to press enter 
     int ch;
     while ((ch = getchar()) != '\n' && ch != EOF) {
         /* Discard input */
@@ -56,7 +55,6 @@ int main(void)
         return 1;
     }
 
-    /* Keep displaying the dashboard until logout */
     clearScreen();
     while (1) {
         printf("\n============================================\n");
@@ -102,8 +100,6 @@ int main(void)
             printf("║\n");
             printf("╚════ Enter your choice: ");
         }
-
-
      
         if (scanf("%d", &choice) != 1) {
             printf(RED "\nInvalid input. Please enter a number.\n" RESET);
@@ -114,14 +110,12 @@ int main(void)
 
         clearInputBuffer();
 
-        /* Logout */
         if (choice == logoutChoice) {
             printf(YELLOW "\nLogged out successfully. Goodbye, %s!\n" RESET,
                    loggedUser.userName);
             break;
         }
 
-        /* Check invalid menu choices */
         if (choice < 1 || choice > logoutChoice) {
             printf(RED "\nInvalid menu choice. Please try again.\n" RESET);
             pauseScreen();
@@ -129,7 +123,6 @@ int main(void)
         }
 
         clearScreen();
-
 
         if (strcmp(loggedUser.role, "ADMIN") == 0) {
             switch (choice) {
