@@ -9,26 +9,22 @@
     #include <windows.h>
     #include <conio.h>
 
-    /* Initialize Windows terminal */
     static inline void platform_init_console(void)
     {
         SetConsoleOutputCP(CP_UTF8);
         SetConsoleCP(CP_UTF8);
     }
 
-    /* Read a key without displaying it */
     static inline int platform_getch(void)
     {
         return _getch();
     }
 
-    /* Clear terminal */
     static inline void platform_clear_screen(void)
     {
         system("cls");
     }
 
-    /* Delay in milliseconds */
     static inline void platform_sleep_ms(unsigned int milliseconds)
     {
         Sleep(milliseconds);

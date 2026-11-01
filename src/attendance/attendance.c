@@ -20,12 +20,12 @@ typedef struct {
     char checkOut[10];
 } Attendance;
 
-/* Wait for Enter, handling the newline left by scanf */
+
 static void pressEnterToContinue(void)
 {
     int ch;
 
-    /* Clear any remaining characters from the previous input */
+    
     while ((ch = getchar()) != '\n' && ch != EOF) {
     }
 
