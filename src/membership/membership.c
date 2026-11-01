@@ -248,6 +248,7 @@ void assignMembership(void)
         printf("Invalid membership fee! Fee must be greater than zero.\n");
         return;
     }
+    clearInputBuffer();
 
     strcpy(m.status, "ACTIVE");
 

@@ -33,14 +33,26 @@ static void clearInputBuffer(void)
 
 static void readText(const char *prompt, char *buffer, size_t size)
 {
+    int ch;
+    size_t len;
+
     printf("%s", prompt);
+    fflush(stdout);
 
     if (fgets(buffer, (int)size, stdin) == NULL) {
         buffer[0] = '\0';
         return;
     }
-    buffer[strcspn(buffer, "\n")] = '\0';
-    if (strchr(buffer, '\0') != NULL) {
+
+    len = strlen(buffer);
+
+    if (len > 0 && buffer[len - 1] == '\n') {
+        buffer[len - 1] = '\0';
+    }
+    else {
+        while ((ch = getchar()) != '\n' && ch != EOF) {
+            /* Clear remaining input */
+        }
     }
 }
 
@@ -512,3 +524,4 @@ void paymentMenu(void)
 
     } while (choice != 5);
 }
+
